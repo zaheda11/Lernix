@@ -2,6 +2,9 @@ import sqlite3
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 
+DB_PATH = os.environ.get('DATABASE_PATH', 'lernix.db')
+
+
 # Load environment variables from .env file if it exists
 env_path = os.path.join(os.path.dirname(__file__), '.env')
 if os.path.exists(env_path):
