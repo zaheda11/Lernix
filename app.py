@@ -735,6 +735,91 @@ def export_csv(id):
         download_name=filename
     )
 
+# --- Capstone & Custom Export APIs ---
+
+@app.route('/api/curriculum/<int:id>/capstone')
+@login_required
+def api_capstone(id):
+    curr = database.get_curriculum(id)
+    if not curr:
+        return jsonify({"success": False, "message": "Curriculum not found."}), 404
+    parsed = json.loads(curr['raw_json'])
+    courses_summary = ", ".join(
+        course.get('name', '')
+        for sem in parsed.get('semesters', [])
+        for course in sem.get('courses', [])
+    )
+    guidelines = llm_service.generate_capstone_guidelines(
+        curr['title'], curr['field_of_study'], courses_summary
+    )
+    return jsonify({"success": True, "capstone": guidelines})
+
+@app.route('/api/curriculum/<int:id>/export/custom', methods=['POST'])
+@login_required
+def export_custom(id):
+    curr = database.get_curriculum(id)
+    if not curr:
+        return jsonify({"success": False, "message": "Curriculum not found."}), 404
+
+    data = request.json or {}
+    topic = data.get('topic', curr['title']).strip() or curr['title']
+    fmt = data.get('format', 'pdf').lower()
+
+    parsed_json = json.loads(curr['raw_json'])
+    database.log_download(session['user_id'], id, fmt)
+    safe_topic = topic.replace(' ', '_').replace('/', '-')
+
+    if fmt == 'json':
+        for sem in parsed_json.get('semesters', []):
+            for course in sem.get('courses', []):
+                if not course.get('resources'):
+                    course['resources'] = [
+                        {"title": f"ACM/IEEE on {course.get('name','')}", "url": "https://www.acm.org"},
+                        {"title": "IBM Cognitive Class", "url": "https://cognitiveclass.ai"}
+                    ]
+        parsed_json['export_topic'] = topic
+        return send_file(
+            io.BytesIO(json.dumps(parsed_json, indent=2).encode('utf-8')),
+            mimetype='application/json',
+            as_attachment=True,
+            download_name=f"{safe_topic}.json"
+        )
+
+    if fmt == 'csv':
+        output = io.StringIO()
+        writer = csv.writer(output)
+        writer.writerow(["Topic", "Curriculum", "Field", "Semester", "Course Code", "Course Name",
+                         "Credits", "Difficulty", "Weekly Hours", "Learning Outcomes",
+                         "Prerequisites", "Assessment Methods"])
+        for sem in parsed_json.get('semesters', []):
+            for course in sem.get('courses', []):
+                writer.writerow([
+                    topic, parsed_json.get('title'), parsed_json.get('field_of_study'),
+                    f"Semester {sem.get('semester_number')}",
+                    course.get('code'), course.get('name'), course.get('credits'),
+                    course.get('difficulty'), course.get('weekly_hours'),
+                    "; ".join(course.get('learning_outcomes', [])),
+                    "; ".join(course.get('prerequisites', [])),
+                    "; ".join(course.get('assessment_methods', []))
+                ])
+        output.seek(0)
+        return send_file(
+            io.BytesIO(output.getvalue().encode('utf-8')),
+            mimetype='text/csv',
+            as_attachment=True,
+            download_name=f"{safe_topic}.csv"
+        )
+
+    # Default: PDF
+    parsed_json['export_topic'] = topic
+    pdf_bytes = pdf_generator.generate_curriculum_pdf(parsed_json)
+    return send_file(
+        io.BytesIO(pdf_bytes),
+        mimetype='application/pdf',
+        as_attachment=True,
+        download_name=f"{safe_topic}.pdf"
+    )
+
 # --- Admin APIs ---
 
 @app.route('/api/admin/user/role', methods=['POST'])

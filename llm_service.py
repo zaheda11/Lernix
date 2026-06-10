@@ -390,7 +390,88 @@ def generate_course_quiz(course_name):
             }
         ]
 
-# --- High-Quality Mock Generators ---
+def generate_capstone_guidelines(curriculum_title, field, courses_summary):
+    """
+    Generates a structured capstone project guideline for the full curriculum.
+    Falls back to a high-quality mock if Ollama is unavailable.
+    """
+    prompt = f"""You are an academic curriculum expert. Generate a detailed capstone project guideline for a curriculum titled "{curriculum_title}" in the field of "{field}".
+
+Courses covered: {courses_summary}
+
+Output a single JSON object only. No markdown, no extra text.
+
+JSON Schema:
+{{
+  "title": "Capstone Project Title",
+  "overview": "2-3 sentence project overview",
+  "objectives": ["objective 1", "objective 2", "objective 3"],
+  "deliverables": [
+    {{"name": "Deliverable Name", "description": "What must be submitted"}}
+  ],
+  "milestones": [
+    {{"phase": "Phase Name", "duration": "X weeks", "tasks": ["task 1", "task 2"]}}
+  ],
+  "evaluation_criteria": [
+    {{"criterion": "Criterion Name", "weight": "X%", "description": "How it is assessed"}}
+  ],
+  "recommended_tools": ["Tool 1", "Tool 2"],
+  "suggested_topics": ["Topic idea 1", "Topic idea 2", "Topic idea 3"]
+}}"""
+    try:
+        response = requests.post(
+            OLLAMA_URL,
+            json={"model": DEFAULT_MODEL, "prompt": prompt, "stream": False, "options": {"temperature": 0.3}},
+            timeout=15
+        )
+        if response.status_code == 200:
+            raw = response.json().get("response", "").strip()
+            raw = re.sub(r"^```json\s*", "", raw, flags=re.MULTILINE)
+            raw = re.sub(r"\s*```$", "", raw, flags=re.MULTILINE).strip()
+            return json.loads(raw)
+    except Exception as e:
+        print(f"Capstone generation failed: {e}")
+    return _mock_capstone(curriculum_title, field)
+
+def _mock_capstone(title, field):
+    return {
+        "title": f"Capstone Project: {title}",
+        "overview": f"This capstone project challenges students to integrate all concepts learned across the {title} curriculum into a single, deployable, industry-grade solution in the domain of {field}.",
+        "objectives": [
+            "Apply theoretical knowledge to a real-world problem",
+            "Demonstrate full-stack or end-to-end system design skills",
+            "Produce professional documentation and a working prototype",
+            "Present findings to a panel of evaluators"
+        ],
+        "deliverables": [
+            {"name": "Project Proposal", "description": "1-2 page document outlining problem statement, objectives, and tech stack"},
+            {"name": "Working Prototype", "description": "Functional application or model meeting defined requirements"},
+            {"name": "Technical Report", "description": "10-15 page report covering architecture, implementation, and evaluation"},
+            {"name": "Final Presentation", "description": "15-minute demo and Q&A session with evaluators"}
+        ],
+        "milestones": [
+            {"phase": "Research & Planning", "duration": "2 weeks", "tasks": ["Define problem scope", "Review literature", "Select technology stack"]},
+            {"phase": "Design & Architecture", "duration": "2 weeks", "tasks": ["Create system diagrams", "Define data models", "Set up project repository"]},
+            {"phase": "Implementation", "duration": "4 weeks", "tasks": ["Build core features", "Integrate components", "Write unit tests"]},
+            {"phase": "Testing & Refinement", "duration": "1 week", "tasks": ["User acceptance testing", "Bug fixes", "Performance optimization"]},
+            {"phase": "Documentation & Presentation", "duration": "1 week", "tasks": ["Finalize report", "Prepare slides", "Record demo video"]}
+        ],
+        "evaluation_criteria": [
+            {"criterion": "Technical Complexity", "weight": "30%", "description": "Depth of implementation and appropriate use of course concepts"},
+            {"criterion": "Functionality", "weight": "25%", "description": "Working prototype meeting all defined requirements"},
+            {"criterion": "Documentation Quality", "weight": "20%", "description": "Clarity, completeness, and professional standard of written report"},
+            {"criterion": "Presentation & Defence", "weight": "15%", "description": "Clear communication and ability to answer questions"},
+            {"criterion": "Innovation", "weight": "10%", "description": "Originality and creative problem-solving approach"}
+        ],
+        "recommended_tools": ["Git / GitHub", "VS Code", "Docker", "Postman", "Figma", "Jupyter Notebook"],
+        "suggested_topics": [
+            f"AI-powered {field} recommendation system",
+            f"Full-stack {field} management platform",
+            f"Data analytics dashboard for {field} metrics"
+        ]
+    }
+
+
 
 def generate_mock_curriculum(title, field, duration):
     """

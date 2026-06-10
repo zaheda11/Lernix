@@ -28,16 +28,11 @@
             <i class="fa-solid fa-route"></i> Pathway Roadmap
         </a>
         
-        <!-- Export drop-down -->
+        <!-- Export Modal Trigger -->
         <div style="position:relative; display:inline-block;" id="export-dropdown-wrapper">
-            <button class="btn btn-secondary" onclick="toggleExportMenu()" id="curr-export-btn">
-                <i class="fa-solid fa-file-export"></i> Export Report <i class="fa-solid fa-caret-down"></i>
+            <button class="btn btn-secondary" onclick="openExportModal()" id="curr-export-btn">
+                <i class="fa-solid fa-file-export"></i> Export Report
             </button>
-            <div id="export-menu-dropdown" style="display:none; position:absolute; top:105%; right:0; background:var(--bg-slate-900); border:1px solid var(--glass-border); border-radius:var(--radius-sm); z-index:100; min-width:160px; box-shadow:0 8px 16px rgba(0,0,0,0.5);">
-                <a href="{{ url_for('export_pdf', id=curriculum.id) }}" style="display:block; padding:0.8rem 1rem; color:var(--text-primary); border-bottom:1px solid var(--glass-border); font-size:0.9rem;" onclick="toggleExportMenu()"><i class="fa-solid fa-file-pdf" style="color:var(--color-danger); margin-right:0.5rem;"></i> PDF Document</a>
-                <a href="{{ url_for('export_json', id=curriculum.id) }}" style="display:block; padding:0.8rem 1rem; color:var(--text-primary); border-bottom:1px solid var(--glass-border); font-size:0.9rem;" onclick="toggleExportMenu()"><i class="fa-solid fa-file-code" style="color:var(--color-primary); margin-right:0.5rem;"></i> JSON Payload</a>
-                <a href="{{ url_for('export_csv', id=curriculum.id) }}" style="display:block; padding:0.8rem 1rem; color:var(--text-primary); font-size:0.9rem;" onclick="toggleExportMenu()"><i class="fa-solid fa-file-csv" style="color:var(--color-success); margin-right:0.5rem;"></i> CSV Spreadsheet</a>
-            </div>
         </div>
     </div>
 </div>
@@ -211,6 +206,69 @@
     </div>
 </div>
 
+<!-- Capstone Project Guidelines Section -->
+<div class="glass-card" id="capstone-panel" style="margin-top:2rem; border-color:rgba(168,85,247,0.3);">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom:1.2rem;">
+        <h2 style="font-size:1.4rem; color:var(--color-accent);"><i class="fa-solid fa-rocket"></i> Capstone Project Guidelines</h2>
+        <button class="btn btn-accent" id="capstone-gen-btn" onclick="loadCapstone()">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Capstone Guidelines
+        </button>
+    </div>
+    <div id="capstone-loader" style="display:none;">
+        <div class="loader-container" style="display:flex; padding:1.5rem 0;">
+            <div class="glow-spinner"></div>
+            <div class="loader-text">Generating capstone guidelines...</div>
+        </div>
+    </div>
+    <div id="capstone-content" style="display:none;"></div>
+    <p id="capstone-placeholder" style="color:var(--text-muted); font-size:0.9rem;">
+        Click the button above to generate AI-powered capstone project guidelines tailored to this curriculum.
+    </p>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="export-modal" style="display:none;">
+    <div class="glass-card modal-container" style="max-width:480px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid var(--glass-border); padding-bottom:0.8rem;">
+            <h2 style="font-size:1.2rem; color:var(--color-secondary);"><i class="fa-solid fa-file-export"></i> Export Report</h2>
+            <button style="background:none;border:none;color:white;font-size:1.3rem;cursor:pointer;" onclick="closeExportModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Export Topic / Title</label>
+            <input type="text" id="export-topic-input" class="form-input" placeholder="e.g. Machine Learning Semester 2 Report" value="{{ curriculum.title }}">
+        </div>
+        <div class="form-group">
+            <label class="form-label">File Format</label>
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-top:0.3rem;">
+                <label style="cursor:pointer;">
+                    <input type="radio" name="export-fmt" value="pdf" checked style="display:none;" id="fmt-pdf">
+                    <div class="export-fmt-card" onclick="selectFmt('pdf')" id="card-pdf" style="border:2px solid var(--color-primary); border-radius:var(--radius-sm); padding:0.75rem; text-align:center; background:rgba(99,102,241,0.1); transition:all 0.2s;">
+                        <i class="fa-solid fa-file-pdf" style="font-size:1.5rem; color:var(--color-danger); display:block; margin-bottom:0.3rem;"></i>
+                        <span style="font-size:0.8rem; font-weight:600;">PDF</span>
+                    </div>
+                </label>
+                <label style="cursor:pointer;">
+                    <input type="radio" name="export-fmt" value="json" style="display:none;" id="fmt-json">
+                    <div class="export-fmt-card" onclick="selectFmt('json')" id="card-json" style="border:2px solid var(--glass-border); border-radius:var(--radius-sm); padding:0.75rem; text-align:center; background:rgba(255,255,255,0.03); transition:all 0.2s;">
+                        <i class="fa-solid fa-file-code" style="font-size:1.5rem; color:var(--color-primary); display:block; margin-bottom:0.3rem;"></i>
+                        <span style="font-size:0.8rem; font-weight:600;">JSON</span>
+                    </div>
+                </label>
+                <label style="cursor:pointer;">
+                    <input type="radio" name="export-fmt" value="csv" style="display:none;" id="fmt-csv">
+                    <div class="export-fmt-card" onclick="selectFmt('csv')" id="card-csv" style="border:2px solid var(--glass-border); border-radius:var(--radius-sm); padding:0.75rem; text-align:center; background:rgba(255,255,255,0.03); transition:all 0.2s;">
+                        <i class="fa-solid fa-file-csv" style="font-size:1.5rem; color:var(--color-success); display:block; margin-bottom:0.3rem;"></i>
+                        <span style="font-size:0.8rem; font-weight:600;">CSV</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+        <button class="btn btn-primary" style="width:100%; margin-top:0.5rem;" onclick="submitExport()">
+            <i class="fa-solid fa-download"></i> Download Report
+        </button>
+    </div>
+</div>
+
 <!-- Interactive Quiz Modal Overlay -->
 <div class="modal-overlay" id="quiz-modal-overlay">
     <div class="glass-card modal-container" id="quiz-modal-container">
@@ -248,28 +306,117 @@
 
     function toggleAccordion(id) {
         const item = document.getElementById(id);
-        if (item.classList.contains('open')) {
-            item.classList.remove('open');
-        } else {
-            const items = document.querySelectorAll('.accordion-item');
-            items.forEach(el => el.classList.remove('open'));
+        item.classList.contains('open') ? item.classList.remove('open') : (() => {
+            document.querySelectorAll('.accordion-item').forEach(el => el.classList.remove('open'));
             item.classList.add('open');
-        }
+        })();
     }
 
-    function toggleExportMenu() {
-        const menu = document.getElementById('export-menu-dropdown');
-        menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+    // ── Export Modal ──
+    let selectedFmt = 'pdf';
+    function openExportModal() { document.getElementById('export-modal').style.display = 'flex'; }
+    function closeExportModal() { document.getElementById('export-modal').style.display = 'none'; }
+    function selectFmt(fmt) {
+        selectedFmt = fmt;
+        ['pdf','json','csv'].forEach(f => {
+            const card = document.getElementById('card-' + f);
+            card.style.border = f === fmt ? '2px solid var(--color-primary)' : '2px solid var(--glass-border)';
+            card.style.background = f === fmt ? 'rgba(99,102,241,0.1)' : 'rgba(255,255,255,0.03)';
+        });
     }
-
-    // Close export menu on click outside
-    window.addEventListener('click', function(e) {
-        const wrapper = document.getElementById('export-dropdown-wrapper');
-        const menu = document.getElementById('export-menu-dropdown');
-        if (wrapper && !wrapper.contains(e.target) && menu) {
-            menu.style.display = 'none';
-        }
+    function submitExport() {
+        const topic = document.getElementById('export-topic-input').value.trim() || '{{ curriculum.title }}';
+        const btn = document.querySelector('#export-modal .btn-primary');
+        btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparing...';
+        fetch('/api/curriculum/{{ curriculum.id }}/export/custom', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({topic, format: selectedFmt})
+        })
+        .then(r => r.blob())
+        .then(blob => {
+            const ext = selectedFmt;
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = topic.replace(/\s+/g,'_') + '.' + ext;
+            a.click();
+            closeExportModal();
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-download"></i> Download Report';
+        });
+    }
+    window.addEventListener('click', e => {
+        const m = document.getElementById('export-modal');
+        if (e.target === m) closeExportModal();
     });
+
+    // ── Capstone ──
+    function loadCapstone() {
+        const btn = document.getElementById('capstone-gen-btn');
+        const loader = document.getElementById('capstone-loader');
+        const content = document.getElementById('capstone-content');
+        const placeholder = document.getElementById('capstone-placeholder');
+        btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+        placeholder.style.display = 'none';
+        loader.style.display = 'block';
+        fetch('/api/curriculum/{{ curriculum.id }}/capstone')
+        .then(r => r.json())
+        .then(data => {
+            loader.style.display = 'none';
+            btn.innerHTML = '<i class="fa-solid fa-rotate-right"></i> Regenerate';
+            btn.disabled = false;
+            if (!data.success) { placeholder.textContent = 'Failed to generate.'; placeholder.style.display = 'block'; return; }
+            const c = data.capstone;
+            content.innerHTML = `
+                <div style="margin-bottom:1.2rem;">
+                    <h3 style="font-size:1.2rem;color:var(--color-accent);margin-bottom:0.5rem;">${c.title}</h3>
+                    <p style="color:var(--text-secondary);font-size:0.92rem;">${c.overview}</p>
+                </div>
+                <div class="grid-2" style="gap:1.5rem;margin-bottom:1.2rem;">
+                    <div>
+                        <h4 style="font-size:0.95rem;color:var(--text-primary);margin-bottom:0.5rem;"><i class="fa-solid fa-bullseye" style="color:var(--color-primary);"></i> Objectives</h4>
+                        <ul style="padding-left:1.2rem;color:var(--text-secondary);font-size:0.88rem;display:flex;flex-direction:column;gap:0.3rem;">${c.objectives.map(o=>`<li>${o}</li>`).join('')}</ul>
+                    </div>
+                    <div>
+                        <h4 style="font-size:0.95rem;color:var(--text-primary);margin-bottom:0.5rem;"><i class="fa-solid fa-wrench" style="color:var(--color-secondary);"></i> Recommended Tools</h4>
+                        <div style="display:flex;flex-wrap:wrap;gap:0.4rem;">${c.recommended_tools.map(t=>`<span class="badge badge-blue">${t}</span>`).join('')}</div>
+                        <h4 style="font-size:0.95rem;color:var(--text-primary);margin:0.8rem 0 0.5rem;"><i class="fa-solid fa-lightbulb" style="color:var(--color-warning);"></i> Suggested Topics</h4>
+                        <ul style="padding-left:1.2rem;color:var(--text-secondary);font-size:0.88rem;display:flex;flex-direction:column;gap:0.3rem;">${c.suggested_topics.map(t=>`<li>${t}</li>`).join('')}</ul>
+                    </div>
+                </div>
+                <h4 style="font-size:0.95rem;color:var(--text-primary);margin-bottom:0.8rem;"><i class="fa-solid fa-boxes-stacked" style="color:var(--color-accent);"></i> Deliverables</h4>
+                <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.2rem;">${c.deliverables.map(d=>`
+                    <div style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:var(--radius-sm);padding:0.6rem 0.9rem;">
+                        <b style="color:var(--color-accent);font-size:0.88rem;">${d.name}:</b>
+                        <span style="color:var(--text-secondary);font-size:0.85rem;"> ${d.description}</span>
+                    </div>`).join('')}
+                </div>
+                <h4 style="font-size:0.95rem;color:var(--text-primary);margin-bottom:0.8rem;"><i class="fa-solid fa-flag-checkered" style="color:var(--color-success);"></i> Milestones</h4>
+                <div style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.2rem;">${c.milestones.map((m,i)=>`
+                    <div style="border-left:3px solid var(--color-primary);padding-left:1rem;">
+                        <div style="font-weight:600;font-size:0.9rem;color:var(--color-primary);">${m.phase} <span style="color:var(--text-muted);font-weight:400;font-size:0.8rem;">(${m.duration})</span></div>
+                        <ul style="padding-left:1rem;margin-top:0.3rem;color:var(--text-secondary);font-size:0.84rem;">${m.tasks.map(t=>`<li>${t}</li>`).join('')}</ul>
+                    </div>`).join('')}
+                </div>
+                <h4 style="font-size:0.95rem;color:var(--text-primary);margin-bottom:0.8rem;"><i class="fa-solid fa-clipboard-check" style="color:var(--color-secondary);"></i> Evaluation Criteria</h4>
+                <div style="display:flex;flex-direction:column;gap:0.4rem;">${c.evaluation_criteria.map(e=>`
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:0.3rem;background:rgba(255,255,255,0.02);padding:0.5rem 0.8rem;border-radius:var(--radius-sm);border:1px solid var(--glass-border);">
+                        <div><b style="font-size:0.88rem;color:var(--text-primary);">${e.criterion}</b><span style="font-size:0.82rem;color:var(--text-muted);"> — ${e.description}</span></div>
+                        <span class="badge badge-purple">${e.weight}</span>
+                    </div>`).join('')}
+                </div>
+            `;
+            content.style.display = 'block';
+        })
+        .catch(() => {
+            loader.style.display = 'none';
+            placeholder.textContent = 'Error generating capstone. Please try again.';
+            placeholder.style.display = 'block';
+            btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Capstone Guidelines';
+        });
+    }
 
     function toggleOptIn(currId) {
         const optBtn = document.getElementById('optin-btn');
