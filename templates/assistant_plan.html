@@ -192,7 +192,7 @@
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
 
-        fetch(`/api/quiz/get?course_name=${encodeURIComponent(topic)}`)
+        fetch(`/api/quiz/get?course_name=${encodeURIComponent(topic)}&week_topic=${encodeURIComponent(topic)}`)
         .then(r => r.json())
         .then(questions => {
             weekQuizState[weekNum] = { questions, selected: {} };

@@ -525,9 +525,10 @@ def api_assistant_interview_ask():
 @login_required
 def api_quiz_get():
     course_name = request.args.get('course_name')
+    week_topic  = request.args.get('week_topic', course_name)  # prefer week-specific topic
     if not course_name:
         return jsonify([]), 400
-    quiz = llm_service.generate_course_quiz(course_name)
+    quiz = llm_service.generate_course_quiz(week_topic or course_name)
     return jsonify(quiz)
 
 @app.route('/api/quiz/submit', methods=['POST'])
