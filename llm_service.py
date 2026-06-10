@@ -727,89 +727,235 @@ def generate_mock_curriculum(title, field, duration):
     }
 
 def generate_mock_study_plan(course_name, weekly_hours):
-    """Generates a detailed study plan for student assistant UI"""
+    """Generates a detailed study plan with unique topics per week based on the course."""
     weekly_hours = int(weekly_hours)
-    study_schedule = []
-    
-    topics = [
-        "Foundations and Setup",
-        "Intermediate Concepts and Architecture",
-        "Practical Implementation & Coding Labs",
-        "Project Optimization & Revision"
-    ]
-    
-    # Map reference resource links for weeks
-    resource_links = [
+    cn = course_name.lower()
+
+    # Course-aware week topic progressions
+    if any(k in cn for k in ["python", "programming", "software"]):
+        week_topics = [
+            ("Environment Setup & Python Syntax Basics",
+             ["Install Python & VS Code, write first scripts", "Variables, data types, operators", "Control flow: if/else, loops"],
+             "Write a working CLI menu application"),
+            ("Functions, Modules & Data Structures",
+             ["Define and call functions with arguments", "Lists, tuples, dictionaries, sets", "Import and use standard library modules"],
+             "Build a personal data organiser using dicts and lists"),
+            ("Object-Oriented Programming",
+             ["Classes, objects, constructors", "Inheritance, polymorphism, encapsulation", "Design and implement a mini OOP project"],
+             "Implement a bank account class hierarchy"),
+            ("File Handling, APIs & Error Management",
+             ["Read/write files and CSV data", "Consume REST APIs with the requests library", "Exception handling with try/except"],
+             "Build a weather app consuming a public API"),
+        ]
+    elif any(k in cn for k in ["data structures", "algorithms", "dsa"]):
+        week_topics = [
+            ("Arrays, Strings & Complexity Analysis",
+             ["Big-O notation and time/space complexity", "Array traversals and two-pointer technique", "String manipulation problems"],
+             "Solve 5 LeetCode Easy array problems"),
+            ("Linked Lists, Stacks & Queues",
+             ["Singly and doubly linked lists", "Stack operations and use cases", "Queue and deque implementations"],
+             "Implement a stack-based expression evaluator"),
+            ("Trees, Heaps & Graphs",
+             ["Binary trees, BST operations", "BFS and DFS traversals", "Graph representation and shortest path"],
+             "Implement BFS/DFS on a maze grid"),
+            ("Sorting, Searching & Dynamic Programming",
+             ["Merge sort, quick sort, heap sort", "Binary search and its variations", "DP fundamentals: memoisation and tabulation"],
+             "Solve 3 medium DP problems on LeetCode"),
+        ]
+    elif any(k in cn for k in ["machine learning", "ml", "artificial intelligence", "ai"]):
+        week_topics = [
+            ("ML Fundamentals & Data Preprocessing",
+             ["Supervised vs unsupervised learning concepts", "Data cleaning, normalisation, train/test split", "Exploratory data analysis with Pandas"],
+             "Clean and analyse a real Kaggle dataset"),
+            ("Regression & Classification Models",
+             ["Linear and logistic regression from scratch", "Decision trees and random forests", "Model evaluation: accuracy, precision, recall, F1"],
+             "Train a customer churn prediction model"),
+            ("Unsupervised Learning & Feature Engineering",
+             ["K-means and hierarchical clustering", "PCA for dimensionality reduction", "Feature selection and encoding strategies"],
+             "Cluster customer segments on retail data"),
+            ("Neural Networks & Model Deployment",
+             ["Perceptrons, activation functions, backpropagation", "Build a CNN with TensorFlow/Keras", "Deploy model as a Flask REST API"],
+             "Deploy a digit recognition model to a web API"),
+        ]
+    elif any(k in cn for k in ["web", "html", "css", "javascript", "react", "flask", "node"]):
+        week_topics = [
+            ("HTML5 & CSS3 Foundations",
+             ["Document structure, semantic tags, accessibility", "CSS selectors, box model, flexbox layout", "Responsive design with media queries"],
+             "Build a fully responsive portfolio landing page"),
+            ("JavaScript & DOM Manipulation",
+             ["Variables, functions, arrays, objects in JS", "DOM selection, events, and dynamic updates", "Fetch API and async/await patterns"],
+             "Build an interactive quiz app in vanilla JS"),
+            ("Backend Development with Flask/Node",
+             ["REST API design principles", "Routes, request handling, JSON responses", "Database integration with SQLite/MongoDB"],
+             "Build a CRUD REST API for a task manager"),
+            ("Full-Stack Integration & Deployment",
+             ["Connect frontend to backend API", "Authentication with JWT / session cookies", "Deploy to Render / Railway / Vercel"],
+             "Deploy a full-stack task manager application live"),
+        ]
+    elif any(k in cn for k in ["database", "sql", "dbms"]):
+        week_topics = [
+            ("Relational Database Concepts & SQL Basics",
+             ["Tables, primary keys, foreign keys, constraints", "SELECT, INSERT, UPDATE, DELETE statements", "Filtering with WHERE, ORDER BY, GROUP BY"],
+             "Design and query a student records database"),
+            ("Advanced SQL & Joins",
+             ["INNER, LEFT, RIGHT, FULL OUTER JOINs", "Subqueries, views, and CTEs", "Aggregate functions and window functions"],
+             "Write complex multi-table join queries on sample data"),
+            ("Database Design & Normalisation",
+             ["1NF, 2NF, 3NF normalisation rules", "ER diagrams and schema design", "Indexing and query optimisation"],
+             "Normalise a denormalised e-commerce schema to 3NF"),
+            ("NoSQL & Database Administration",
+             ["MongoDB documents, collections, CRUD operations", "Redis caching fundamentals", "Backup, restore, and transaction management"],
+             "Implement a product catalogue in MongoDB"),
+        ]
+    elif any(k in cn for k in ["cloud", "devops", "docker", "kubernetes", "aws", "azure"]):
+        week_topics = [
+            ("Cloud Computing Fundamentals",
+             ["IaaS, PaaS, SaaS service models", "AWS/GCP/Azure core services overview", "Regions, availability zones, IAM basics"],
+             "Launch and configure an EC2/Compute Engine instance"),
+            ("Containerisation with Docker",
+             ["Docker images, containers, Dockerfile syntax", "docker-compose for multi-service apps", "Container networking and volumes"],
+             "Dockerise a Flask API with a PostgreSQL database"),
+            ("CI/CD Pipelines",
+             ["Git branching strategies and code reviews", "GitHub Actions workflow configuration", "Automated testing and deployment pipelines"],
+             "Build a CI/CD pipeline that deploys on every push"),
+            ("Kubernetes & Monitoring",
+             ["Pods, deployments, services, and ingress", "Horizontal pod autoscaling", "Prometheus and Grafana monitoring basics"],
+             "Deploy a containerised app on a local Kubernetes cluster"),
+        ]
+    elif any(k in cn for k in ["security", "cybersecurity", "network", "crypto"]):
+        week_topics = [
+            ("Security Fundamentals & Threat Landscape",
+             ["CIA triad, threat actors, attack vectors", "OWASP Top 10 vulnerabilities overview", "Social engineering and phishing awareness"],
+             "Perform a basic vulnerability scan with Nmap"),
+            ("Cryptography & Secure Communications",
+             ["Symmetric vs asymmetric encryption", "Hashing algorithms: SHA-256, bcrypt", "TLS/SSL handshake and certificate management"],
+             "Implement AES encryption/decryption in Python"),
+            ("Network Security & Firewalls",
+             ["TCP/IP stack and packet analysis with Wireshark", "Firewall rules, VPNs, and DMZ design", "Intrusion detection systems (IDS/IPS)"],
+             "Capture and analyse HTTP/HTTPS packets"),
+            ("Ethical Hacking & Incident Response",
+             ["Penetration testing methodology", "SQL injection, XSS, CSRF exploitation labs", "Incident response plan and forensics basics"],
+             "Complete a CTF challenge on HackTheBox/TryHackMe"),
+        ]
+    elif any(k in cn for k in ["data science", "analytics", "statistics"]):
+        week_topics = [
+            ("Statistics & Probability Foundations",
+             ["Descriptive statistics: mean, median, variance", "Probability distributions and Bayes theorem", "Hypothesis testing and p-values"],
+             "Perform statistical analysis on a housing dataset"),
+            ("Data Wrangling with Pandas & NumPy",
+             ["DataFrame operations, merging, groupby", "Handling missing values and outliers", "Data type conversions and feature extraction"],
+             "Clean a messy real-world CSV dataset end-to-end"),
+            ("Data Visualisation",
+             ["Matplotlib and Seaborn for statistical plots", "Interactive charts with Plotly", "Dashboard design with Streamlit"],
+             "Build an interactive COVID-19 data dashboard"),
+            ("Predictive Analytics & Reporting",
+             ["Time series analysis and forecasting", "A/B testing and experiment design", "Business report generation and storytelling with data"],
+             "Forecast next-quarter sales using time series models"),
+        ]
+    else:
+        # Generic course-specific progression
+        cn_title = course_name.split()[:2]
+        base = " ".join(cn_title) if cn_title else course_name
+        week_topics = [
+            (f"Foundations of {course_name}",
+             [f"Core terminology and concepts of {base}",
+              f"Environment setup and tool installation for {base}",
+              f"First hands-on exercise with {base}"],
+             f"Complete introductory lab for {base}"),
+            (f"Core Principles & Architecture of {course_name}",
+             [f"Deep-dive into {base} architecture and design patterns",
+              f"Study real-world {base} case studies",
+              f"Implement a basic {base} module from scratch"],
+             f"Build and document a {base} prototype component"),
+            (f"Applied Implementation: {course_name}",
+             [f"Integrate {base} with external tools and APIs",
+              f"Debug and optimise a {base} project",
+              f"Write unit tests for {base} logic"],
+             f"Submit a working {base} mini-project with tests"),
+            (f"Advanced Topics & Project Finalisation: {course_name}",
+             [f"Explore advanced {base} patterns and edge cases",
+              f"Conduct peer code review of {base} implementations",
+              f"Prepare final project documentation"],
+             f"Present and demo completed {base} capstone project"),
+        ]
+
+    resource_pool = [
         [
-            {"title": "MDN Core Language Guide", "url": f"https://developer.mozilla.org/en-US/search?q={course_name.replace(' ', '+')}"},
-            {"title": "W3Schools Reference Documentation", "url": f"https://www.w3schools.com/search/index.php?q={course_name.replace(' ', '+')}"}
+            {"title": "MDN Web Docs", "url": f"https://developer.mozilla.org/en-US/search?q={course_name.replace(' ', '+')}"},
+            {"title": "W3Schools Reference", "url": f"https://www.w3schools.com/search/index.php?q={course_name.replace(' ', '+')}"},
         ],
         [
             {"title": "IBM Cognitive Class", "url": f"https://cognitiveclass.ai/courses?search={course_name.replace(' ', '+')}"},
-            {"title": "GeeksforGeeks Tutorial", "url": f"https://www.geeksforgeeks.org/search?q={course_name.replace(' ', '+')}"}
+            {"title": "GeeksforGeeks", "url": f"https://www.geeksforgeeks.org/search?q={course_name.replace(' ', '+')}"},
         ],
         [
-            {"title": "Github Code Repository Examples", "url": f"https://github.com/search?q={course_name.replace(' ', '+')}"},
-            {"title": "Hugging Face Models", "url": f"https://huggingface.co/models?search={course_name.replace(' ', '+')}"}
+            {"title": "GitHub Repositories", "url": f"https://github.com/search?q={course_name.replace(' ', '+')}"},
+            {"title": "Hugging Face", "url": f"https://huggingface.co/models?search={course_name.replace(' ', '+')}"},
         ],
         [
-            {"title": "LeetCode Practice Problems", "url": f"https://leetcode.com/problemset/all/?search={course_name.replace(' ', '+')}"},
-            {"title": "StackOverflow Developer Forums", "url": f"https://stackoverflow.com/search?q={course_name.replace(' ', '+')}"}
-        ]
+            {"title": "LeetCode Practice", "url": f"https://leetcode.com/problemset/all/?search={course_name.replace(' ', '+')}"},
+            {"title": "Stack Overflow", "url": f"https://stackoverflow.com/search?q={course_name.replace(' ', '+')}"},
+        ],
     ]
-    
-    for i in range(1, 5):
-        hours_distribution = [
-            f"Read theoretical literature ({int(weekly_hours * 0.3)} hours)",
-            f"Watch course lectures & demonstrations ({int(weekly_hours * 0.2)} hours)",
-            f"Hands-on coding exercises/labs ({int(weekly_hours * 0.5)} hours)"
+
+    study_schedule = []
+    for i, (topic, tasks_raw, milestone) in enumerate(week_topics):
+        h = weekly_hours
+        total = h * 10  # proportional split basis
+        tasks = [
+            f"{tasks_raw[0]}  ({int(h*0.3)} hrs)",
+            f"{tasks_raw[1]}  ({int(h*0.3)} hrs)",
+            f"{tasks_raw[2]}  ({int(h*0.4)} hrs)",
         ]
-        
         study_schedule.append({
-            "week": i,
-            "topic": f"{topics[i-1]} of {course_name}",
-            "tasks": hours_distribution,
-            "resources": resource_links[i-1],
-            "milestone": f"Complete Phase {i} self-assessment quiz & lab exercise."
+            "week": i + 1,
+            "topic": topic,
+            "tasks": tasks,
+            "resources": resource_pool[i % len(resource_pool)],
+            "milestone": milestone,
         })
-        
+
     revision_roadmap = [
         {
             "phase": "Phase 1: Foundation Building",
             "timeline": "Week 1",
-            "focus": "Core jargon, environment initialization, basic constructs.",
-            "checkpoints": ["Compile simple demo script", "Answer key theory questions"]
+            "focus": f"Core terminology, tooling, and environment setup for {course_name}.",
+            "checkpoints": ["Complete setup checklist", "Finish Week 1 quiz"]
         },
         {
-            "phase": "Phase 2: Deep Dive",
-            "timeline": "Weeks 2-3",
-            "focus": "Architectural patterns, logic implementations, API interactions.",
-            "checkpoints": ["Integrate databases/modules", "Debug standard errors"]
+            "phase": "Phase 2: Concept Deep Dive",
+            "timeline": "Weeks 2–3",
+            "focus": f"Architecture, design patterns, and applied coding in {course_name}.",
+            "checkpoints": ["Submit Week 2 mini-project", "Pass mid-point assessment"]
         },
         {
-            "phase": "Phase 3: Integration & Review",
+            "phase": "Phase 3: Project & Review",
             "timeline": "Week 4",
-            "focus": "Optimization, security practices, Capstone build review.",
-            "checkpoints": ["Run unit test suite", "Conduct mock interview prep"]
-        }
+            "focus": f"Integration, optimisation, and capstone demonstration for {course_name}.",
+            "checkpoints": ["Run full test suite", "Present final project demo"]
+        },
     ]
-    
+
     interview_prep = [
         {
-            "topic": f"Core {course_name} Interview Concepts",
+            "topic": f"Core {course_name} Concepts",
             "sample_questions": [
                 {
                     "question": f"What are the primary design principles applied in {course_name}?",
-                    "answer": f"The primary focus centers around efficiency, modular architecture, and industry compliance. This ensures codebases are scalable, reusable, and easy to maintain by distributed engineering teams."
+                    "answer": "The primary focus is efficiency, modular architecture, and industry compliance — ensuring systems are scalable, reusable, and maintainable."
                 },
                 {
-                    "question": f"Explain how you would handle scale and error propagation in {course_name}.",
-                    "answer": f"Scale is handled via horizontal replication and resource offloading. Error propagation is managed through structural error-handling blocks, fallback defaults, and comprehensive centralized logger alerts."
+                    "question": f"How would you handle scalability challenges in {course_name}?",
+                    "answer": "Scale is addressed through horizontal replication, caching layers, and load balancing. Error propagation is managed via structured exception handling and centralised logging."
+                },
+                {
+                    "question": f"Describe a real-world project you would build using {course_name}.",
+                    "answer": f"An end-to-end {course_name} system covering data ingestion, processing logic, a REST API layer, and a web dashboard — deployed on cloud infrastructure with CI/CD automation."
                 }
             ]
         }
     ]
-    
+
     return {
         "course_name": course_name,
         "weekly_hours_allocated": weekly_hours,
@@ -817,8 +963,8 @@ def generate_mock_study_plan(course_name, weekly_hours):
         "revision_roadmap": revision_roadmap,
         "interview_preparation": interview_prep,
         "resource_sources": [
-            "LeetCode Interview Guides (Mock Fallback)",
-            "GeeksforGeeks Academic Prep Sheets (Mock Fallback)",
+            "LeetCode Interview Guides",
+            "GeeksforGeeks Academic Prep Sheets",
             "LERNIX Smart Heuristic Student Assistant"
         ]
     }
