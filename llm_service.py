@@ -535,7 +535,7 @@ def _mock_full_report(topic, field):
     }
 
 
-curriculum_title, field, courses_summary):
+def generate_capstone_guidelines(curriculum_title, field, courses_summary):
     """
     Generates a structured capstone project guideline for the full curriculum.
     Falls back to a high-quality mock if Ollama is unavailable.
