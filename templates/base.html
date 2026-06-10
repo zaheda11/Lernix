@@ -59,6 +59,10 @@
         <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
         <span>LERNIX</span>
     </div>
+    <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn-sidebar" style="margin-top:1rem;width:100%;justify-content:center;">
+        <i class="fa-solid fa-moon" id="theme-icon-sidebar"></i>
+        <span id="theme-label-sidebar">Dark Mode</span>
+    </button>
 
     {% if 'user_id' in session %}
         <div style="margin-top:1rem;padding:0 0.5rem;">
@@ -127,6 +131,10 @@
         <div class="header-user-info">
             <span class="header-user-name">{{ session.get('full_name') }}</span>
             <span class="header-user-role">{{ session.get('role') }}</span>
+            <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn-desktop">
+                <i class="fa-solid fa-moon" id="theme-icon-desktop"></i>
+                <span id="theme-label-desktop">Dark</span>
+            </button>
         </div>
     </header>
     {% endif %}
@@ -188,6 +196,28 @@
         document.getElementById('sidebar-backdrop').classList.remove('show');
     }
     function toggleMobileSidebar() { toggleSidebar(); }
+
+    // ── Theme Toggle ──
+    function applyTheme(mode) {
+        const isLight = mode === 'light';
+        document.body.classList.toggle('light-mode', isLight);
+        const icon = isLight ? 'fa-sun' : 'fa-moon';
+        const label = isLight ? 'Light Mode' : 'Dark Mode';
+        const labelShort = isLight ? 'Light' : 'Dark';
+        ['sidebar','desktop'].forEach(id => {
+            const iconEl = document.getElementById('theme-icon-' + id);
+            const labelEl = document.getElementById('theme-label-' + id);
+            if (iconEl) iconEl.className = 'fa-solid ' + icon;
+            if (labelEl) labelEl.textContent = id === 'sidebar' ? label : labelShort;
+        });
+        localStorage.setItem('lernix_theme', mode);
+    }
+    function toggleTheme() {
+        const current = document.body.classList.contains('light-mode') ? 'light' : 'dark';
+        applyTheme(current === 'light' ? 'dark' : 'light');
+    }
+    // Apply saved theme on load
+    applyTheme(localStorage.getItem('lernix_theme') || 'dark');
 </script>
 {% block extra_js %}{% endblock %}
 </body>

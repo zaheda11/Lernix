@@ -30,6 +30,79 @@
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* ── Light Mode ── */
+body.light-mode {
+    --bg-dark: #f0f4f8;
+    --bg-slate-900: #ffffff;
+    --bg-slate-800: #e2e8f0;
+    --bg-slate-700: #cbd5e1;
+    --glass-bg: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(0, 0, 0, 0.10);
+    --text-primary: #0f172a;
+    --text-secondary: #334155;
+    --text-muted: #94a3b8;
+    --color-primary-glow: rgba(99, 102, 241, 0.20);
+    --color-secondary-glow: rgba(6, 182, 212, 0.20);
+}
+body.light-mode {
+    background-color: var(--bg-dark);
+    background-image:
+        radial-gradient(at 0% 0%, rgba(99,102,241,0.08) 0, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(6,182,212,0.06) 0, transparent 50%);
+    color: var(--text-primary);
+}
+body.light-mode .app-sidebar {
+    background: rgba(253, 252, 252, 0.764);
+    border-right-color: var(--glass-border);
+}
+body.light-mode .app-header,
+body.light-mode .mob-header,
+body.light-mode .mob-bottom-nav {
+    background: rgba(255,255,255,0.97);
+    border-color: var(--glass-border);
+}
+body.light-mode .form-input {
+    background: rgba(255,255,255,0.9);
+    border-color: rgba(0,0,0,0.15);
+    color: var(--text-primary);
+}
+body.light-mode select.form-input option { background-color: #ffffff; color: #0f172a; }
+body.light-mode .sidebar-logo {
+    background: linear-gradient(135deg, #0f172a 30%, var(--color-secondary) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+body.light-mode .page-title {
+    background: linear-gradient(135deg, #0f172a 40%, var(--color-primary) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+body.light-mode .metric-value {
+    background: linear-gradient(135deg, #0f172a, var(--color-primary));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+body.light-mode .app-footer {
+    background: rgba(255,255,255,0.9);
+    border-top-color: var(--glass-border);
+}
+
+/* ── Theme Toggle Button ── */
+.theme-toggle-btn {
+    background: rgba(255,255,255,0.08);
+    border: 1px solid var(--glass-border);
+    color: var(--text-secondary);
+    border-radius: 20px;
+    padding: 0.35rem 0.75rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: var(--transition-smooth);
+    white-space: nowrap;
+}
+.theme-toggle-btn:hover { background: rgba(99,102,241,0.15); color: var(--color-primary); }
+body.light-mode .theme-toggle-btn { background: rgba(0,0,0,0.06); }
+
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

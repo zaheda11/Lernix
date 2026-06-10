@@ -86,8 +86,8 @@ def generate_curriculum_from_llm(title, field, duration, target_audience="Underg
                         skill_name = skills[0] if skills else "Technology"
                         course_name_url = course.get('name', 'course').replace(' ', '+')
                         course["resources"] = [
-                            {"title": f"ACM/IEEE Guidelines on {course.get('name', 'this course')}", "url": f"https://www.acm.org/search?q={course_name_url}"},
-                            {"title": f"IBM Cognitive Class: {skill_name}", "url": f"https://cognitiveclass.ai/courses?search={skill_name.replace(' ', '+')}"}
+                            {"title": f"Google Scholar: {course.get('name', 'this course')}", "url": f"https://scholar.google.com/scholar?q={course_name_url}"},
+                            {"title": f"Coursera: {skill_name}", "url": f"https://www.coursera.org/search?query={skill_name.replace(' ', '%20')}"}
                         ]
             
             parsed_json["resource_sources"] = [
@@ -386,6 +386,175 @@ def generate_course_quiz(course_name):
              "explanations": ["Incorrect.", "Correct! Binary search only works on sorted arrays.", "Incorrect.", "Incorrect."]},
         ]
 
+    # ── Healthcare / Health Informatics weekly topics ───────────────
+    if "health informatics" in t or "ehr" in t or "fhir" in t or "health data" in t:
+        return [
+            {"question": "What does EHR stand for in healthcare IT?",
+             "options": ["Electronic Health Record", "Encoded Health Report", "External Health Registry", "Encrypted Hospital Record"],
+             "correct_index": 0,
+             "explanations": ["Correct! EHR = Electronic Health Record.", "Incorrect.", "Incorrect.", "Incorrect."]},
+            {"question": "What is FHIR primarily used for?",
+             "options": ["Encrypting patient files", "Standardising healthcare data exchange between systems", "Training AI models", "Hospital billing only"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! FHIR standardises electronic health information exchange.", "Incorrect.", "Incorrect."]},
+            {"question": "Which regulation governs patient data privacy in the United States?",
+             "options": ["GDPR", "HIPAA", "PCI-DSS", "SOX"],
+             "correct_index": 1,
+             "explanations": ["Incorrect - GDPR is EU.", "Correct! HIPAA protects patient health information.", "Incorrect.", "Incorrect."]},
+            {"question": "What does HL7 stand for in healthcare IT?",
+             "options": ["High Level 7", "Health Level Seven", "Hospital Link 7", "Health Layer 7"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! HL7 = Health Level Seven, the standards body for healthcare data interoperability.", "Incorrect.", "Incorrect."]},
+            {"question": "What is the primary purpose of a Health Information Exchange (HIE)?",
+             "options": ["Billing patients faster", "Securely sharing patient data across different healthcare organisations", "Training medical staff", "Storing imaging files only"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! HIEs enable authorised sharing of patient records across organisations to improve care coordination.", "Incorrect.", "Incorrect."]},
+        ]
+
+    if "medical data" in t or "clinical dataset" in t or "patient" in t:
+        return [
+            {"question": "What is the main challenge with clinical datasets?",
+             "options": ["Too much labeled data", "Missing values, imbalanced classes, and privacy constraints", "Always perfectly structured", "Only available in real-time"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Clinical data has missing values, class imbalance, and strict privacy rules.", "Incorrect.", "Incorrect."]},
+            {"question": "Which metric is most important when evaluating a disease detection model?",
+             "options": ["Accuracy", "Sensitivity (Recall)", "Throughput", "Code coverage"],
+             "correct_index": 1,
+             "explanations": ["Incorrect - accuracy is misleading on imbalanced data.", "Correct! Sensitivity measures true positive rate - critical to avoid missing disease cases.", "Incorrect.", "Incorrect."]},
+            {"question": "What is data de-identification in healthcare?",
+             "options": ["Deleting all patient records", "Removing PII so data can be used for research without exposing identity", "Encrypting data for transfer", "Converting data to JSON"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! De-identification removes name, DOB, SSN so patients cannot be identified.", "Incorrect.", "Incorrect."]},
+            {"question": "What is class imbalance in clinical ML datasets?",
+             "options": ["Equal numbers of sick and healthy patients", "When disease-positive cases are far fewer than negative cases", "A data formatting error", "When features have different scales"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Rare diseases create severe imbalance - e.g. 1% positive cases vs 99% negative.", "Incorrect.", "Incorrect."]},
+            {"question": "Which Python library is most commonly used for clinical data analysis?",
+             "options": ["TensorFlow", "Pandas", "Flask", "Django"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Pandas provides DataFrames ideal for loading, cleaning, and analysing clinical tabular data.", "Incorrect.", "Incorrect."]},
+        ]
+
+    if "medical imaging" in t or "x-ray" in t or "mri" in t or ("cnn" in t and "health" in t) or ("computer vision" in t and "health" in t):
+        return [
+            {"question": "Which deep learning architecture is most commonly used for medical image classification?",
+             "options": ["RNN", "CNN (Convolutional Neural Network)", "Decision Tree", "Linear Regression"],
+             "correct_index": 1,
+             "explanations": ["Incorrect - RNNs are for sequences.", "Correct! CNNs extract spatial features from images using convolutional filters.", "Incorrect.", "Incorrect."]},
+            {"question": "What is transfer learning in medical imaging?",
+             "options": ["Training from scratch on X-rays", "Using a pre-trained model (e.g. ResNet) fine-tuned on medical data", "Copying weights between hospitals", "Scanning images twice"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Transfer learning reuses ImageNet-trained weights and fine-tunes on smaller medical datasets.", "Incorrect.", "Incorrect."]},
+            {"question": "What does Grad-CAM provide in medical AI?",
+             "options": ["Faster training", "Visual heatmap showing which image regions influenced the prediction", "Data augmentation", "Batch normalisation"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Grad-CAM highlights regions driving the model decision - key for clinical trust.", "Incorrect.", "Incorrect."]},
+            {"question": "Why is data augmentation important in medical imaging datasets?",
+             "options": ["To increase image resolution", "To artificially expand small datasets by applying rotations, flips, and contrast changes", "To remove noise from scans", "To convert DICOM to PNG"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Medical datasets are small; augmentation prevents overfitting by generating varied training samples.", "Incorrect.", "Incorrect."]},
+            {"question": "What is a DICOM file in medical imaging?",
+             "options": ["A Python imaging library", "The standard format for storing and transmitting medical images and metadata", "A type of CNN layer", "A hospital database format"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! DICOM (Digital Imaging and Communications in Medicine) is the universal standard for medical images.", "Incorrect.", "Incorrect."]},
+        ]
+
+    if "clinical nlp" in t or "biobert" in t or "clinical text" in t or "discharge" in t or ("nlp" in t and "clinical" in t) or ("natural language" in t and "clinical" in t):
+        return [
+            {"question": "What is BioBERT?",
+             "options": ["A hospital billing system", "A BERT model pre-trained on biomedical literature for clinical NLP", "A medical imaging tool", "A Python library for EHR"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! BioBERT is trained on PubMed and PMC texts for biomedical NLP tasks.", "Incorrect.", "Incorrect."]},
+            {"question": "What is Named Entity Recognition (NER) used for in clinical text?",
+             "options": ["Encrypting patient notes", "Identifying medical terms like diagnoses, drugs, and symptoms in text", "Generating reports", "Scheduling appointments"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! NER extracts structured medical entities from unstructured clinical notes.", "Incorrect.", "Incorrect."]},
+            {"question": "Why is NLP on clinical notes harder than general text?",
+             "options": ["Notes are too short", "Medical abbreviations, typos, domain jargon, and privacy constraints", "Doctors write perfectly structured notes", "Too much data available"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Clinical text has non-standard abbreviations, misspellings, and highly specialised terminology.", "Incorrect.", "Incorrect."]},
+            {"question": "What does ICD-10 coding refer to in clinical NLP?",
+             "options": ["A Python version", "International Classification of Diseases codes used to classify diagnoses and procedures", "A network protocol", "An imaging format"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! ICD-10 provides standardised codes that NLP models extract from clinical notes for billing and analytics.", "Incorrect.", "Incorrect."]},
+            {"question": "What is relation extraction in clinical NLP?",
+             "options": ["Removing duplicate records", "Identifying relationships between medical entities such as drug-dosage or disease-symptom pairs", "Extracting images from reports", "Converting text to speech"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Relation extraction identifies semantic links between entities like 'metformin treats diabetes'.", "Incorrect.", "Incorrect."]},
+        ]
+
+    if "decision support" in t or "cdss" in t or "clinical decision" in t or ("clinical" in t and "support" in t):
+        return [
+            {"question": "What is a Clinical Decision Support System (CDSS)?",
+             "options": ["A scheduling app", "An AI system providing evidence-based recommendations to clinicians at point of care", "A patient portal", "A billing tool"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! CDSS analyses patient data and knowledge bases to assist clinical decisions.", "Incorrect.", "Incorrect."]},
+            {"question": "Which standard integrates CDSS with EHR systems?",
+             "options": ["REST only", "HL7 FHIR CDS Hooks", "SOAP XML", "CSV export"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! CDS Hooks is the modern standard for triggering CDSS services within EHR workflows.", "Incorrect.", "Incorrect."]},
+            {"question": "What is alert fatigue in CDSS?",
+             "options": ["System slowdown", "Clinicians ignoring alerts because too many are irrelevant or low-priority", "Database timeout", "Model overfitting"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Alert fatigue leads clinicians to override alerts without reading them, undermining patient safety.", "Incorrect.", "Incorrect."]},
+            {"question": "What type of knowledge base does a rule-based CDSS rely on?",
+             "options": ["Neural network weights", "Curated clinical guidelines and IF-THEN logic rules", "Real-time social media feeds", "Random patient surveys"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Rule-based CDSS encodes clinical guidelines as explicit IF-THEN rules (e.g. if HbA1c > 7%, suggest diabetes review).", "Incorrect.", "Incorrect."]},
+            {"question": "What is a key advantage of ML-based CDSS over rule-based systems?",
+             "options": ["Always interpretable", "Can learn complex patterns from large patient datasets without manually coded rules", "Requires no training data", "Cheaper to build"],
+             "correct_index": 1,
+             "explanations": ["Incorrect - ML models are often black boxes.", "Correct! ML-based CDSS discovers patterns in data automatically, handling complexity beyond hand-coded rules.", "Incorrect.", "Incorrect."]},
+        ]
+
+    if "healthcare data privacy" in t or ("ethics" in t and "health" in t) or "hipaa" in t or ("privacy" in t and "health" in t):
+        return [
+            {"question": "What does HIPAA primarily protect?",
+             "options": ["Hospital financial records", "Patients protected health information (PHI)", "Doctor salaries", "Medical device patents"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! HIPAA protects individually identifiable health information held by covered entities.", "Incorrect.", "Incorrect."]},
+            {"question": "What is data de-identification under HIPAA?",
+             "options": ["Deleting all patient records", "Removing 18 specific identifiers so data cannot be linked to an individual", "Encrypting data for transfer", "Anonymising only names"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! HIPAA Safe Harbor requires removal of 18 identifiers including name, DOB, zip code, and SSN.", "Incorrect.", "Incorrect."]},
+            {"question": "What is algorithmic bias in healthcare AI?",
+             "options": ["Intentional manipulation", "Systematic errors due to unrepresentative training data across demographic groups", "Random noise", "Slow inference"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Models trained on non-diverse data perform worse for underrepresented groups, causing inequitable outcomes.", "Incorrect.", "Incorrect."]},
+            {"question": "What is federated learning and why is it important for healthcare privacy?",
+             "options": ["Training on centralised hospital data", "Training models locally at each hospital without sharing raw patient data", "Sharing patient records globally", "A type of data encryption"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Federated learning keeps patient data on-premise - only model updates are shared, preserving privacy.", "Incorrect.", "Incorrect."]},
+            {"question": "What is the principle of data minimisation in healthcare AI ethics?",
+             "options": ["Using the largest possible dataset", "Collecting and processing only the minimum patient data necessary for the task", "Deleting all data after use", "Sharing data freely for research"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Data minimisation reduces privacy risk by limiting collection to what is strictly needed.", "Incorrect.", "Incorrect."]},
+        ]
+
+    if ("fda" in t and "health" in t) or "healthcare ai deployment" in t or ("regulation" in t and "health" in t) or "medical device" in t:
+        return [
+            {"question": "Under which FDA category do most AI/ML diagnostic tools fall?",
+             "options": ["Class I", "Class II/III - Software as a Medical Device (SaMD)", "Over-the-counter", "Food additives"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! AI diagnostic tools are regulated as SaMD, typically Class II or III depending on risk.", "Incorrect.", "Incorrect."]},
+            {"question": "What does the FDA AI/ML action plan require for adaptive models?",
+             "options": ["All models must be open-source", "Ongoing monitoring, performance validation, and transparency", "Paper submissions only", "No post-market surveillance"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! The FDA requires pre-market transparency and post-market performance monitoring for AI/ML SaMD.", "Incorrect.", "Incorrect."]},
+            {"question": "What is distribution shift in deployed healthcare AI?",
+             "options": ["Model is always accurate", "Performance degrades when real-world patient population differs from training data", "Too much compute available", "No regulatory oversight"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Distribution shift causes model performance to degrade when deployment conditions differ from training.", "Incorrect.", "Incorrect."]},
+            {"question": "What is model drift monitoring in healthcare AI?",
+             "options": ["Checking server uptime", "Continuously tracking model performance post-deployment to detect degradation", "Retraining every month automatically", "Archiving old model versions"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Drift monitoring detects when model accuracy drops due to changes in patient population or clinical practices.", "Incorrect.", "Incorrect."]},
+            {"question": "What does CE marking indicate for AI medical devices in Europe?",
+             "options": ["A quality award", "Compliance with EU Medical Device Regulation (MDR) requirements", "A software certification", "An ISO standard"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! CE marking indicates the device meets EU MDR safety and performance requirements for market approval.", "Incorrect.", "Incorrect."]},
+        ]
+
     # ── ML / AI weekly topics ───────────────────────────────────────
     if "ml fundamentals" in t or "data preprocessing" in t or "preprocessing" in t:
         return [
@@ -615,7 +784,24 @@ def generate_course_quiz(course_name):
              "explanations": ["Incorrect.", "Correct! TLS encrypts data transmitted over the network.", "Incorrect.", "Incorrect."]},
         ]
 
-    # ── Fallback: original question bank ───────────────────────────
+    # -- Generic healthcare catch-all --
+    if "healthcare" in t or ("health" in t and "ai" in t) or ("health" in t and "machine learning" in t):
+        return [
+            {"question": "What does AI in healthcare primarily aim to improve?",
+             "options": ["Hospital architecture", "Clinical decision-making accuracy and patient outcomes", "Administrative salaries", "Insurance pricing only"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! AI improves diagnostic accuracy, treatment recommendations, and patient outcome predictions.", "Incorrect.", "Incorrect."]},
+            {"question": "Which ML model type is used for disease risk prediction?",
+             "options": ["Unsupervised clustering", "Supervised classification (e.g. logistic regression, random forest)", "Reinforcement learning only", "GANs"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Supervised classification learns from labelled patient data to predict disease risk.", "Incorrect.", "Incorrect."]},
+            {"question": "Why is model explainability important in healthcare AI?",
+             "options": ["It speeds up training", "Clinicians must understand AI recommendations before acting on them", "It reduces storage costs", "Regulations do not require it"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Explainability (SHAP, LIME, Grad-CAM) allows clinicians to verify AI reasoning and maintain accountability.", "Incorrect.", "Incorrect."]},
+        ]
+
+    # -- Fallback: original question bank --
     c_lower = t
     if "python" in c_lower or "programming" in c_lower:
         return [
@@ -662,6 +848,36 @@ def generate_course_quiz(course_name):
          "correct_index": 2,
          "explanations": ["Incorrect.", "Incorrect.", "Correct! Agile uses short iterative cycles.", "Incorrect."]},
     ]
+
+def generate_semester_quiz(course_names_list):
+    """
+    Generates exactly 10 unique questions based on the semester's course topics.
+    Builds a pool from all courses (5 q each = 15+ unique), shuffles, returns 10.
+    """
+    import random
+    pool = []
+    seen = set()
+    for name in course_names_list:
+        for q in generate_course_quiz(name):
+            key = q['question'][:60]
+            if key not in seen:
+                seen.add(key)
+                pool.append(q)
+    # If somehow still under 10 (very unlikely with 5 q/course), cycle again
+    i = 0
+    while len(pool) < 10 and i < len(course_names_list) * 10:
+        extra = generate_course_quiz(course_names_list[i % len(course_names_list)])
+        for q in extra:
+            key = q['question'][:58] + str(len(pool))
+            if key not in seen:
+                seen.add(key)
+                pool.append(dict(q))
+            if len(pool) >= 10:
+                break
+        i += 1
+    random.shuffle(pool)
+    return pool[:10]
+
 
 def generate_full_report_data(topic, curriculum_data):
     """
@@ -900,7 +1116,26 @@ def generate_mock_curriculum(title, field, duration):
     title_lower = title.lower()
     combined = field_lower + " " + title_lower
 
-    if any(k in combined for k in ["computer", "software", "programming", "engineering", "web", "mobile", "backend", "frontend"]):
+    if any(k in combined for k in ["healthcare", "health", "medical", "clinical", "biomedical", "hospital", "patient", "diagnosis"]):
+        topic_pool = [
+            ("HI101", "Introduction to Health Informatics", "Overview of healthcare systems, electronic health records (EHR), health data standards (HL7, FHIR), and patient data management.", 3, "Beginner", 92, ["Health Informatics Analyst"], ["EHR System Prototype"], ["Health Data", "HL7"],
+             [{"title": "HL7 FHIR Documentation", "url": "https://hl7.org/fhir/"}, {"title": "Health IT on Coursera", "url": "https://www.coursera.org/search?query=health+informatics"}]),
+            ("HI102", "Medical Data Analysis with Python", "Applying Python (Pandas, NumPy) to clean, analyse, and visualise clinical datasets including patient records and lab results.", 4, "Beginner", 93, ["Clinical Data Analyst"], ["Patient Readmission Analysis"], ["Python", "Medical Data"],
+             [{"title": "Kaggle Healthcare Datasets", "url": "https://www.kaggle.com/search?q=healthcare"}, {"title": "Google Scholar: Medical Data Analysis", "url": "https://scholar.google.com/scholar?q=medical+data+analysis+python"}]),
+            ("HI201", "AI & Machine Learning in Healthcare", "Supervised and unsupervised ML applied to disease prediction, medical image classification, and patient outcome modelling.", 4, "Intermediate", 98, ["Healthcare AI Engineer"], ["Diabetes Risk Predictor"], ["Machine Learning", "Scikit-Learn"],
+             [{"title": "Coursera: AI for Medicine", "url": "https://www.coursera.org/specializations/ai-for-medicine"}, {"title": "Google Scholar: ML Healthcare", "url": "https://scholar.google.com/scholar?q=machine+learning+healthcare"}]),
+            ("HI202", "Medical Imaging & Computer Vision", "CNN-based analysis of X-ray, MRI, and CT scan images for automated diagnosis support using TensorFlow and Keras.", 4, "Intermediate", 97, ["Medical Imaging Specialist"], ["Chest X-Ray Classifier"], ["Computer Vision", "CNN"],
+             [{"title": "Kaggle: Chest X-Ray Dataset", "url": "https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia"}, {"title": "Coursera: AI for Medical Diagnosis", "url": "https://www.coursera.org/learn/ai-for-medical-diagnosis"}]),
+            ("HI301", "Natural Language Processing for Clinical Text", "NLP techniques for processing clinical notes, discharge summaries, and medical literature using BERT and transformer models.", 4, "Intermediate", 96, ["Clinical NLP Engineer"], ["Medical Named Entity Recognition System"], ["NLP", "BERT"],
+             [{"title": "HuggingFace BioBERT", "url": "https://huggingface.co/dmis-lab/biobert-v1.1"}, {"title": "Google Scholar: Clinical NLP", "url": "https://scholar.google.com/scholar?q=clinical+NLP+BERT"}]),
+            ("HI302", "Healthcare Data Privacy & Ethics", "HIPAA compliance, data de-identification, algorithmic bias in clinical AI, and responsible AI deployment in healthcare.", 3, "Advanced", 91, ["Healthcare Compliance Officer"], ["Bias Audit of Clinical AI Model"], ["HIPAA", "Ethics"],
+             [{"title": "HHS HIPAA Guidelines", "url": "https://www.hhs.gov/hipaa/index.html"}, {"title": "WHO Ethics & AI in Health", "url": "https://www.who.int/publications/i/item/9789240029200"}]),
+            ("HI401", "Clinical Decision Support Systems", "Architecture of AI-powered CDSS, integration with EHR platforms, real-time patient alert systems, and validation frameworks.", 4, "Advanced", 97, ["CDSS Developer", "Health AI Architect"], ["Drug Interaction Alert System"], ["CDSS", "HL7 FHIR"],
+             [{"title": "HL7 CDS Hooks", "url": "https://cds-hooks.hl7.org/"}, {"title": "Google Scholar: CDSS", "url": "https://scholar.google.com/scholar?q=clinical+decision+support+systems+AI"}]),
+            ("HI402", "Healthcare AI Deployment & Regulation", "FDA guidelines for AI/ML-based medical devices, deployment pipelines, monitoring, and regulatory submission processes.", 3, "Advanced", 94, ["Regulatory Affairs Specialist"], ["AI Model Validation Report"], ["FDA Regulation", "Model Monitoring"],
+             [{"title": "FDA AI/ML Action Plan", "url": "https://www.fda.gov/medical-devices/software-medical-device-samd/artificial-intelligence-and-machine-learning-aiml-enabled-medical-devices"}, {"title": "Google Scholar: FDA AI", "url": "https://scholar.google.com/scholar?q=FDA+AI+ML+medical+devices"}])
+        ]
+    elif any(k in combined for k in ["computer", "software", "programming", "engineering", "web", "mobile", "backend", "frontend"]):
         topic_pool = [
             ("CS101", "Introduction to Python Programming", "Fundamental control flows, variables, data structures (lists, dicts), and writing clean modular programs in Python.", 3, "Beginner", 90, ["Python Developer"], ["CLI Calculator", "Contact Book App"], ["Python", "Algorithms"]),
             ("CS102", "Object-Oriented Design", "Advanced concepts of OOP including encapsulation, inheritance, polymorphism, design patterns, and UML diagramming.", 4, "Beginner", 88, ["Software Intern"], ["Library Management System"], ["OOP", "UML"]),
@@ -970,9 +1205,9 @@ def generate_mock_curriculum(title, field, duration):
                 "career_opportunities": orig_course[6],
                 "recommended_projects": orig_course[7],
                 "key_skills": orig_course[8],
-                "resources": [
-                    {"title": f"ACM/IEEE Guidelines on {orig_course[1]}", "url": f"https://www.acm.org/search?q={orig_course[1].replace(' ', '+')}"},
-                    {"title": f"IBM Cognitive Class: {orig_course[8][0] if orig_course[8] else 'Introduction'}", "url": f"https://cognitiveclass.ai/courses?search={orig_course[8][0].replace(' ', '+') if orig_course[8] else 'IT'}"}
+                "resources": orig_course[9] if len(orig_course) > 9 else [
+                    {"title": f"Google Scholar: {orig_course[1]}", "url": f"https://scholar.google.com/scholar?q={orig_course[1].replace(' ', '+')}"},
+                    {"title": f"Coursera: {orig_course[8][0] if orig_course[8] else 'Introduction'}", "url": f"https://www.coursera.org/search?query={orig_course[8][0].replace(' ', '%20') if orig_course[8] else 'IT'}"}
                 ]
             }
             if course_data["industry_relevance_score"] > 100:
@@ -1005,7 +1240,22 @@ def generate_mock_study_plan(course_name, weekly_hours):
     cn = course_name.lower()
 
     # Course-aware week topic progressions
-    if any(k in cn for k in ["python", "programming", "software"]):
+    if any(k in cn for k in ["healthcare", "health", "medical", "clinical", "biomedical"]):
+        week_topics = [
+            ("Health Data Foundations & EHR Systems",
+             ["Overview of EHR systems and HL7/FHIR standards", "Loading and exploring clinical datasets with Pandas", "Data cleaning: missing values, outliers in patient records"],
+             "Perform exploratory analysis on a public health dataset (e.g. MIMIC-III sample)"),
+            ("AI & ML Models for Disease Prediction",
+             ["Supervised learning for diagnosis classification (diabetes, heart disease)", "Feature engineering on clinical lab values", "Model evaluation: AUC-ROC, sensitivity, specificity"],
+             "Build a diabetes risk prediction model using Scikit-Learn"),
+            ("Medical Imaging & Computer Vision",
+             ["CNN architecture for X-ray / MRI classification", "Transfer learning with pre-trained models (ResNet, EfficientNet)", "Grad-CAM explainability for clinical decisions"],
+             "Train a chest X-ray classifier to detect pneumonia"),
+            ("Clinical NLP, Ethics & Deployment",
+             ["NLP on clinical notes using BERT/BioBERT", "HIPAA compliance, data de-identification, algorithmic bias", "Deploy healthcare AI model with audit logging"],
+             "Build a clinical named-entity recognition (NER) pipeline"),
+        ]
+    elif any(k in cn for k in ["python", "programming", "software", "problem solving", " c ", "c language", "c programming", "through c"]):
         week_topics = [
             ("Environment Setup & Python Syntax Basics",
              ["Install Python & VS Code, write first scripts", "Variables, data types, operators", "Control flow: if/else, loops"],
@@ -1152,22 +1402,23 @@ def generate_mock_study_plan(course_name, weekly_hours):
              f"Present and demo completed {base} capstone project"),
         ]
 
+    q = course_name.replace(' ', '+')
     resource_pool = [
         [
-            {"title": "MDN Web Docs", "url": f"https://developer.mozilla.org/en-US/search?q={course_name.replace(' ', '+')}"},
-            {"title": "W3Schools Reference", "url": f"https://www.w3schools.com/search/index.php?q={course_name.replace(' ', '+')}"},
+            {"title": f"Google Scholar: {course_name}", "url": f"https://scholar.google.com/scholar?q={q}"},
+            {"title": "Coursera Courses", "url": f"https://www.coursera.org/search?query={q}"},
         ],
         [
-            {"title": "IBM Cognitive Class", "url": f"https://cognitiveclass.ai/courses?search={course_name.replace(' ', '+')}"},
-            {"title": "GeeksforGeeks", "url": f"https://www.geeksforgeeks.org/search?q={course_name.replace(' ', '+')}"},
+            {"title": "YouTube Tutorials", "url": f"https://www.youtube.com/results?search_query={q}+tutorial"},
+            {"title": "GeeksforGeeks", "url": f"https://www.geeksforgeeks.org/search/?q={q}"},
         ],
         [
-            {"title": "GitHub Repositories", "url": f"https://github.com/search?q={course_name.replace(' ', '+')}"},
-            {"title": "Hugging Face", "url": f"https://huggingface.co/models?search={course_name.replace(' ', '+')}"},
+            {"title": "GitHub Repositories", "url": f"https://github.com/search?q={q}&type=repositories"},
+            {"title": "Kaggle", "url": f"https://www.kaggle.com/search?q={q}"},
         ],
         [
-            {"title": "LeetCode Practice", "url": f"https://leetcode.com/problemset/all/?search={course_name.replace(' ', '+')}"},
-            {"title": "Stack Overflow", "url": f"https://stackoverflow.com/search?q={course_name.replace(' ', '+')}"},
+            {"title": "Stack Overflow", "url": f"https://stackoverflow.com/search?q={q}"},
+            {"title": "Wikipedia Overview", "url": f"https://en.wikipedia.org/wiki/Special:Search?search={q}"},
         ],
     ]
 

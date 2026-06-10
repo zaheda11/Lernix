@@ -13,8 +13,6 @@ build/
 # Virtual environments
 venv/
 env/
-.venv/
-.env/
 
 # Environment variables — NEVER commit secrets
 .env

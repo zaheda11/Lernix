@@ -21,7 +21,7 @@
         
         <div class="form-group">
             <label class="form-label" for="select-curriculum">1. Select Target Curriculum</label>
-            <select id="select-curriculum" class="form-input" onchange="populateCoursesDropdown(this.value)" required>
+            <select id="select-curriculum" class="form-input" required>
                 <option value="">-- Choose Curriculum --</option>
                 {% for curr in curricula %}
                     <option value="{{ curr.id }}">{{ curr.title }}</option>
@@ -29,17 +29,8 @@
             </select>
         </div>
         
-        {% if session.get('role') != 'student' %}
-            <div class="form-group" id="course-form-group">
-                <label class="form-label" for="select-course">2. Select Target Course</label>
-                <select id="select-course" class="form-input" required disabled>
-                    <option value="">-- Select Curriculum First --</option>
-                </select>
-            </div>
-        {% endif %}
-        
         <div class="form-group">
-            <label class="form-label" for="study-hours">{% if session.get('role') == 'student' %}2.{% else %}3.{% endif %} Weekly Study Commitment (Hours): <b id="study-hours-val" style="color:var(--color-secondary);">10</b></label>
+            <label class="form-label" for="study-hours">2. Weekly Study Commitment (Hours): <b id="study-hours-val" style="color:var(--color-secondary);">10</b></label>
             <input type="range" id="study-hours" min="4" max="40" value="10" step="2" class="form-input" style="padding:0;" oninput="document.getElementById('study-hours-val').innerText = this.value">
             <div class="range-labels" style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">
                 <span>4h Casual</span>
@@ -94,40 +85,6 @@
         clearInterval(phraseInterval);
     }
 
-    function populateCoursesDropdown(currId) {
-        const selectCourse = document.getElementById('select-course');
-        if (!selectCourse) return;
-        
-        selectCourse.innerHTML = '<option value="">-- Loading Courses... --</option>';
-        selectCourse.disabled = true;
-
-        if (!currId) {
-            selectCourse.innerHTML = '<option value="">-- Select Curriculum First --</option>';
-            return;
-        }
-
-        fetch(`/api/curriculum/${currId}/courses`)
-            .then(res => res.json())
-            .then(courses => {
-                selectCourse.innerHTML = '<option value="">-- Select Course --</option>';
-                courses.forEach(c => {
-                    selectCourse.innerHTML += `<option value="${c}">${c}</option>`;
-                });
-                selectCourse.disabled = false;
-                
-                // Handle pre-selected URL params if any
-                const urlParams = new URLSearchParams(window.location.search);
-                const preselect = urlParams.get('course');
-                if (preselect) {
-                    selectCourse.value = preselect;
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                selectCourse.innerHTML = '<option value="">-- Error loading courses --</option>';
-            });
-    }
-
     function submitAssistantRequest(event) {
         event.preventDefault();
         const cardEl = document.getElementById('assistant-form-card');
@@ -137,10 +94,9 @@
         
         alertEl.style.display = 'none';
 
-        const courseSelect = document.getElementById('select-course');
         const payload = {
             curriculum_id: document.getElementById('select-curriculum').value,
-            course_name: courseSelect ? courseSelect.value : "",
+            course_name: "",
             weekly_hours: document.getElementById('study-hours').value
         };
 
@@ -175,14 +131,10 @@
         });
     }
 
-    // Auto load on load if params present
     window.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
         const currId = urlParams.get('curr_id');
-        if (currId) {
-            document.getElementById('select-curriculum').value = currId;
-            populateCoursesDropdown(currId);
-        }
+        if (currId) document.getElementById('select-curriculum').value = currId;
     });
 
     function optInCurriculum(currId, btn) {
