@@ -878,20 +878,29 @@ def generate_course_quiz(course_name):
              "correct_index": 1,
              "explanations": ["Incorrect.", "Correct! Merge Sort is always O(n log n).", "Incorrect.", "Incorrect."]},
         ]
-    # Generic OBE/Agile fallback
+    # Dynamic generic fallback for any unknown topic
+    topic_display = course_name.title()
     return [
-        {"question": "What is the primary objective of Outcome-Based Education (OBE)?",
-         "options": ["Increase revenue", "Align curriculum with measurable student competencies", "Eliminate exams", "Automate grading"],
+        {"question": f"What is the primary objective of studying {topic_display}?",
+         "options": ["To memorise facts", "To develop domain expertise and apply knowledge to real-world problems", "To pass exams only", "To learn unrelated skills"],
          "correct_index": 1,
-         "explanations": ["Incorrect.", "Correct! OBE designs curriculum backwards from desired outcomes.", "Incorrect.", "Incorrect."]},
-        {"question": "What is a prerequisite in academic paths?",
-         "options": ["A course completed BEFORE another", "A certificate printer", "A final score card", "A career list"],
-         "correct_index": 0,
-         "explanations": ["Correct! Prerequisites establish foundational knowledge.", "Incorrect.", "Incorrect.", "Incorrect."]},
-        {"question": "What does Agile iteration mean?",
-         "options": ["One long sprint", "Code without error checks", "Short cycles to inspect and adapt", "AI runs the project"],
-         "correct_index": 2,
-         "explanations": ["Incorrect.", "Incorrect.", "Correct! Agile uses short iterative cycles.", "Incorrect."]},
+         "explanations": ["Incorrect.", f"Correct! {topic_display} equips students with specialised knowledge and practical skills applicable to real-world challenges.", "Incorrect.", "Incorrect."]},
+        {"question": f"Which approach best describes effective learning in {topic_display}?",
+         "options": ["Reading textbooks only", "Combining theory with practical application and critical analysis", "Memorising definitions", "Watching lectures passively"],
+         "correct_index": 1,
+         "explanations": ["Incorrect.", "Correct! Deep learning integrates theoretical foundations with hands-on practice and reflective thinking.", "Incorrect.", "Incorrect."]},
+        {"question": f"What role does research play in {topic_display}?",
+         "options": ["No role", "It generates new knowledge and validates existing theories through evidence", "Only used by academics", "Slows down practical work"],
+         "correct_index": 1,
+         "explanations": ["Incorrect.", "Correct! Research advances the field by testing hypotheses, uncovering patterns, and building an evidence base.", "Incorrect.", "Incorrect."]},
+        {"question": f"What is a key career pathway for graduates in {topic_display}?",
+         "options": ["Only academia", "Diverse roles in industry, government, NGOs, and research organisations", "Only private sector", "No career opportunities"],
+         "correct_index": 1,
+         "explanations": ["Incorrect.", f"Correct! {topic_display} graduates work across sectors including industry, policy, research, and consulting.", "Incorrect.", "Incorrect."]},
+        {"question": f"How does ethics apply to the practice of {topic_display}?",
+         "options": ["It doesn't apply", "Ethical principles guide responsible conduct, data integrity, and stakeholder accountability", "Only required for legal compliance", "Covered only in philosophy courses"],
+         "correct_index": 1,
+         "explanations": ["Incorrect.", "Correct! Ethics ensures practitioners act responsibly, maintain integrity, and consider societal impacts.", "Incorrect.", "Incorrect."]},
     ]
 
 def generate_semester_quiz(course_names_list):
@@ -1210,7 +1219,7 @@ def generate_mock_curriculum(title, field, duration):
             ("CS401", "Software Engineering & Devops", "Agile methodologies, testing (unit, integration), version control with Git, CI/CD pipelines, Docker containerization, and cloud deployment.", 4, "Advanced", 94, ["DevOps Engineer", "Release Engineer"], ["Automated CI/CD Pipeline deployment"], ["Docker", "CI/CD", "Git"]),
             ("CS402", "Cybersecurity & Networks", "Fundamentals of computer networks, TCP/IP stack, encryption algorithms, hashing, public key cryptography, and common web security threats.", 3, "Advanced", 93, ["Security Consultant", "Network Analyst"], ["Secure File Transfer Utility"], ["Encryption", "Security"])
         ]
-    elif any(k in combined for k in ["data", "analytics", "science", "machine learning", "ml", "statistics", "ai", "artificial", "neural", "deep learning"]):
+    elif any(k in combined for k in ["data science", "data analytics", "machine learning", "ml", "statistics", "artificial intelligence", "neural", "deep learning", "data engineering"]):
         topic_pool = [
             ("DS101", "Foundations of Data Science", "Introduction to Jupyter Notebooks, Pandas, Numpy, data cleaning, and basic exploratory data analysis (EDA).", 3, "Beginner", 94, ["Data Analyst"], ["Exploratory Analysis of Housing Market"], ["Pandas", "Python"]),
             ("DS102", "Applied Probability & Statistics", "Probability theory, random variables, hypothesis testing, ANOVA, linear regression, and statistical inference.", 4, "Beginner", 90, ["Junior Statistician"], ["A/B Testing Simulator"], ["Statistics", "R"]),
@@ -1222,15 +1231,85 @@ def generate_mock_curriculum(title, field, duration):
             ("DS402", "Data Ethics & Privacy", "Understanding GDPR, ethical biases in algorithms, data anonymization techniques, and transparency in predictive modeling.", 3, "Advanced", 89, ["Compliance Officer"], ["Audit Report of Bias in Hiring AI"], ["Ethics", "Bias Auditing"])
         ]
     else:
+        # Dynamic fallback: generate topic-aware courses from the title/field directly
+        # This handles ANY topic the user enters that doesn't match known domains
+        words = [w.capitalize() for w in title.split() if len(w) > 3]
+        short = " ".join(words[:3]) if words else title
+        T = title  # full title for course names
+        F = field  # field of study
+
         topic_pool = [
-            ("GEN101", "Introduction to Digital Systems", "Introduction to computers, digital ecosystems, search strategies, and spreadsheets.", 3, "Beginner", 80, ["Office Coordinator"], ["Personal Budget Tracker"], ["Excel", "Digital Literacy"]),
-            ("GEN102", "Critical Thinking & Design", "Problem statement definitions, ideation, wireframing, and user-centric design theories.", 3, "Beginner", 82, ["Product Assistant"], ["Customer Journey Map"], ["Design Thinking", "UX"]),
-            ("GEN201", "Project Management Principles", "Introduction to Agile, Scrum, gantt charts, stakeholder communications, and scope control.", 4, "Intermediate", 85, ["Project Manager"], ["Sprint Schedule Plan"], ["Agile", "Scrum"]),
-            ("GEN202", "Digital Marketing Foundations", "SEO optimizations, Google Analytics, content curation, social media outreach, and landing page conversions.", 3, "Intermediate", 88, ["SEO Optimizer"], ["Personal Blog Brand Launch"], ["SEO", "Copywriting"]),
-            ("GEN301", "Business Analytics", "Interpreting charts, forecasting sales, building business models, and pivot tables.", 4, "Intermediate", 90, ["Business Analyst"], ["Quarterly Performance Report"], ["Analytics", "Excel"]),
-            ("GEN302", "Innovation & Entrepreneurship", "Creating startup pitch decks, funding structures, business model canvas, and minimum viable products.", 4, "Advanced", 92, ["Startup Founder"], ["Business Pitch Presentation"], ["Business Model", "Strategy"]),
-            ("GEN401", "Global Leadership & Ethics", "Leading multicultural teams, corporate social responsibility, and ethical frameworks in corporate spaces.", 4, "Advanced", 87, ["Team Lead"], ["Case Study on Corporate Crisis"], ["Leadership", "Ethics"]),
-            ("GEN402", "Capstone Project Launch", "Putting together all concepts to launch a functional prototype or write an extensive research thesis paper.", 4, "Advanced", 95, ["Product Manager"], ["Launchable Web Prototype"], ["Product Design", "Testing"])
+            ("F101", f"Introduction to {T}",
+             f"Foundational concepts, history, and scope of {T}. Overview of key theories, terminologies, and the role of {F} in modern society.",
+             3, "Beginner", 85,
+             [f"{short} Analyst", f"Junior {short} Specialist"],
+             [f"Introductory {short} Case Study Report"],
+             [f"{short} Fundamentals", "Research Methods"],
+             [{"title": f"Google Scholar: {T}", "url": f"https://scholar.google.com/scholar?q={T.replace(' ','+')}"},
+              {"title": f"Coursera: {T}", "url": f"https://www.coursera.org/search?query={T.replace(' ','%20')}"}]),
+
+            ("F102", f"Principles and Theories of {T}",
+             f"In-depth study of core principles, models, and theoretical frameworks underpinning {T}. Comparative analysis of classical and contemporary approaches.",
+             4, "Beginner", 87,
+             [f"{short} Researcher", f"Policy Analyst"],
+             [f"Theoretical Framework Analysis of {short}"],
+             [f"{short} Theory", "Critical Analysis"],
+             [{"title": f"Wikipedia: {T}", "url": f"https://en.wikipedia.org/wiki/Special:Search?search={T.replace(' ','_')}"},
+              {"title": f"YouTube: {T} Explained", "url": f"https://www.youtube.com/results?search_query={T.replace(' ','+')}+explained"}]),
+
+            ("F201", f"Research Methods in {T}",
+             f"Quantitative and qualitative research design, data collection techniques, statistical analysis, and academic writing conventions applied to {F}.",
+             3, "Intermediate", 88,
+             [f"Research Associate", f"{short} Consultant"],
+             [f"Research Proposal on a {short} Problem"],
+             ["Research Design", "Data Analysis"],
+             [{"title": f"Google Scholar: {T} Research", "url": f"https://scholar.google.com/scholar?q={T.replace(' ','+')}+research+methods"},
+              {"title": "Kaggle Datasets", "url": f"https://www.kaggle.com/search?q={T.replace(' ','%20')}"}]),
+
+            ("F202", f"Applied {T}: Case Studies",
+             f"Real-world application of {T} principles through case studies, problem-based learning, and field analysis. Students analyse successes and failures in {F}.",
+             4, "Intermediate", 90,
+             [f"Field Practitioner", f"{short} Officer"],
+             [f"Case Study Analysis: {short} in Practice"],
+             ["Case Analysis", "Problem Solving"],
+             [{"title": f"GitHub: {T} Projects", "url": f"https://github.com/search?q={T.replace(' ','+')}+&type=repositories"},
+              {"title": f"ResearchGate: {T}", "url": f"https://www.researchgate.net/search?q={T.replace(' ','%20')}"}]),
+
+            ("F301", f"Technology & Innovation in {T}",
+             f"Emerging technologies transforming {F}: digital tools, data-driven approaches, automation, and innovation ecosystems relevant to {T}.",
+             4, "Intermediate", 92,
+             [f"{short} Technology Specialist", "Innovation Manager"],
+             [f"Technology Impact Assessment for {short}"],
+             ["Digital Innovation", "Technology Adoption"],
+             [{"title": f"Coursera: Technology in {T}", "url": f"https://www.coursera.org/search?query={T.replace(' ','%20')}+technology"},
+              {"title": f"Google Scholar: Innovation in {T}", "url": f"https://scholar.google.com/scholar?q=innovation+in+{T.replace(' ','%20')}"}]),
+
+            ("F302", f"Ethics, Policy & Governance in {T}",
+             f"Ethical frameworks, regulatory landscape, policy development, and governance structures governing {F}. Stakeholder analysis and accountability mechanisms.",
+             3, "Intermediate", 89,
+             ["Policy Officer", f"{short} Governance Analyst"],
+             [f"Policy Brief on {short} Regulation"],
+             ["Ethics", "Policy Analysis"],
+             [{"title": f"UN Policy Documents on {T}", "url": f"https://www.un.org/en/search?q={T.replace(' ','%20')}"},
+              {"title": f"Google Scholar: {T} Policy", "url": f"https://scholar.google.com/scholar?q={T.replace(' ','+')}+policy+governance"}]),
+
+            ("F401", f"Strategic Management of {T}",
+             f"Strategic planning, programme management, resource allocation, monitoring and evaluation frameworks applied to {F} organisations and initiatives.",
+             4, "Advanced", 91,
+             [f"{short} Programme Manager", "Strategy Consultant"],
+             [f"Strategic Plan for a {short} Organisation"],
+             ["Strategic Planning", "M&E Frameworks"],
+             [{"title": f"Coursera: Strategy & Management", "url": "https://www.coursera.org/search?query=strategic+management"},
+              {"title": f"Google Scholar: {T} Management", "url": f"https://scholar.google.com/scholar?q={T.replace(' ','+')}+strategic+management"}]),
+
+            ("F402", f"Capstone Project: {T}",
+             f"Integrative capstone project requiring students to apply all acquired knowledge and skills to design, execute, and present a comprehensive {F} project addressing a real-world problem.",
+             4, "Advanced", 94,
+             [f"Senior {short} Specialist", "Project Lead"],
+             [f"End-to-End {short} Capstone Project"],
+             ["Project Management", "Research & Development"],
+             [{"title": f"Google Scholar: {T} Capstone", "url": f"https://scholar.google.com/scholar?q={T.replace(' ','+')}+capstone+project"},
+              {"title": f"GitHub: {T} Projects", "url": f"https://github.com/search?q={T.replace(' ','+')}+project"}]),
         ]
 
     semesters = []
