@@ -390,7 +390,152 @@ def generate_course_quiz(course_name):
             }
         ]
 
-def generate_capstone_guidelines(curriculum_title, field, courses_summary):
+def generate_full_report_data(topic, curriculum_data):
+    """
+    Generates enriched report sections: overview, resources, skills,
+    career roadmap, capstone projects, and skill levels.
+    Falls back to rich mock data if Ollama unavailable.
+    """
+    field = curriculum_data.get("field_of_study", topic)
+    courses = [c.get("name", "") for s in curriculum_data.get("semesters", []) for c in s.get("courses", [])]
+    courses_str = ", ".join(courses[:10])
+
+    prompt = (
+        f'You are an academic curriculum expert. Generate a detailed JSON report for a curriculum on "{topic}" '
+        f'(Field: {field}). Courses covered: {courses_str}.\n\n'
+        'Output ONLY a valid JSON object. No markdown. No extra text.\n'
+        '{"target_audience":"string","program_description":"3-4 sentences",'
+        '"learning_objectives":["obj1","obj2","obj3","obj4","obj5"],'
+        '"learning_resources":{"books":[{"title":"T","author":"A","url":"U"}],'
+        '"documentation":[{"title":"T","url":"U"}],"video_courses":[{"title":"T","url":"U"}],'
+        '"research_papers":[{"title":"T","author":"A"}],"industry_references":[{"title":"T","url":"U"}]},'
+        '"skills_mapping":{"technical_skills":["s1"],"tools":["t1"],"frameworks":["f1"],"industry_competencies":["c1"]},'
+        '"skill_levels":{"Skill":80},'
+        '"career_roadmap":{"beginner_roles":[{"title":"R","description":"D","salary":"$X"}],'
+        '"intermediate_roles":[{"title":"R","description":"D","salary":"$X"}],'
+        '"advanced_roles":[{"title":"R","description":"D","salary":"$X"}]},'
+        '"salary_insights":{"Entry Level":"$55k"},'
+        '"capstone_projects":[{"title":"T","description":"D","tech_stack":["t1"],"deliverables":["d1"],"difficulty":"Advanced"}]}'
+    )
+    try:
+        response = requests.post(
+            OLLAMA_URL,
+            json={"model": DEFAULT_MODEL, "prompt": prompt, "stream": False,
+                  "options": {"temperature": 0.3}},
+            timeout=20
+        )
+        if response.status_code == 200:
+            raw = response.json().get("response", "").strip()
+            raw = re.sub(r"^```json\s*", "", raw, flags=re.MULTILINE)
+            raw = re.sub(r"\s*```$", "", raw, flags=re.MULTILINE).strip()
+            return json.loads(raw)
+    except Exception as e:
+        print(f"Full report generation failed: {e}")
+    return _mock_full_report(topic, field)
+
+
+def _mock_full_report(topic, field):
+    return {
+        "target_audience": "Undergraduate & Professional",
+        "program_description": (
+            f"This comprehensive {topic} program provides students with both theoretical foundations "
+            f"and industry-ready practical skills in {field}. Students progress through structured "
+            "semesters covering core principles, applied development, and advanced system design. "
+            "Graduates are prepared for immediate employment or advanced academic research."
+        ),
+        "learning_objectives": [
+            f"Master foundational and advanced concepts of {topic}",
+            f"Apply industry-standard tools and frameworks in {field}",
+            "Design and implement scalable, production-grade systems",
+            "Collaborate effectively in Agile / DevOps environments",
+            "Demonstrate research and innovation capabilities",
+        ],
+        "learning_resources": {
+            "books": [
+                {"title": f"Fundamentals of {topic}", "author": "MIT OpenCourseWare", "url": "https://ocw.mit.edu"},
+                {"title": f"Professional {topic} Handbook", "author": "O'Reilly Media", "url": "https://www.oreilly.com"},
+                {"title": f"{field} in Practice", "author": "Manning Publications", "url": "https://www.manning.com"},
+            ],
+            "documentation": [
+                {"title": "ACM Digital Library", "url": "https://dl.acm.org"},
+                {"title": "IEEE Xplore", "url": "https://ieeexplore.ieee.org"},
+            ],
+            "video_courses": [
+                {"title": f"{topic} — Coursera Specialisation", "url": "https://www.coursera.org"},
+                {"title": f"{topic} Full Course — Udemy", "url": "https://www.udemy.com"},
+                {"title": "IBM Skills Network", "url": "https://cognitiveclass.ai"},
+            ],
+            "research_papers": [
+                {"title": f"Advances in {topic}: A Survey", "author": "ACM / IEEE 2024"},
+                {"title": f"Industry Adoption of {field}", "author": "Gartner Research"},
+            ],
+            "industry_references": [
+                {"title": "GitHub Awesome Lists", "url": f"https://github.com/topics/{topic.lower().replace(' ','-')}"},
+                {"title": "Stack Overflow Developer Survey", "url": "https://survey.stackoverflow.co"},
+            ],
+        },
+        "skills_mapping": {
+            "technical_skills": [f"{topic} Core", "Algorithm Design", "Data Structures", "System Architecture", "Testing & QA"],
+            "tools": ["Git", "Docker", "VS Code", "Postman", "Jupyter"],
+            "frameworks": ["Flask / FastAPI", "React / Vue", "TensorFlow / PyTorch", "Kubernetes"],
+            "industry_competencies": ["Agile / Scrum", "CI/CD Pipelines", "Code Review", "Technical Documentation"],
+        },
+        "skill_levels": {
+            f"{topic} Fundamentals": 95,
+            "System Design": 80,
+            "Data Structures": 85,
+            "Cloud & DevOps": 70,
+            "Testing & QA": 75,
+            "Documentation": 65,
+            "Collaboration": 88,
+        },
+        "career_roadmap": {
+            "beginner_roles": [
+                {"title": f"{topic} Junior Developer", "description": "Entry-level implementation and support roles.", "salary": "$55k–$75k/yr"},
+                {"title": "Technical Analyst", "description": "Data gathering, report generation.", "salary": "$50k–$70k/yr"},
+            ],
+            "intermediate_roles": [
+                {"title": f"{topic} Engineer", "description": "Design and develop core systems.", "salary": "$80k–$110k/yr"},
+                {"title": "Solutions Architect", "description": "Blueprint scalable enterprise solutions.", "salary": "$90k–$120k/yr"},
+            ],
+            "advanced_roles": [
+                {"title": f"Lead {topic} Architect", "description": "Drive technical strategy and roadmap.", "salary": "$130k–$160k/yr"},
+                {"title": "Engineering Director", "description": "Manage teams, budgets, and delivery.", "salary": "$150k+/yr"},
+            ],
+        },
+        "salary_insights": {
+            "Entry Level": "$55k–$75k / year",
+            "Mid Level": "$80k–$110k / year",
+            "Senior / Lead": "$120k–$160k / year",
+            "Director / Principal": "$160k+ / year",
+        },
+        "capstone_projects": [
+            {
+                "title": f"End-to-End {topic} Platform",
+                "description": f"Build a fully functional {topic} platform integrating all course concepts, deployed on cloud infrastructure with CI/CD pipelines.",
+                "tech_stack": ["Python", "Docker", "PostgreSQL", "React", "AWS/GCP"],
+                "deliverables": ["Working prototype", "Technical report (15+ pages)", "Live demo presentation", "GitHub repository"],
+                "difficulty": "Advanced",
+            },
+            {
+                "title": f"{field} Analytics Dashboard",
+                "description": f"Design an interactive analytics dashboard processing real-world {field} data and visualising insights.",
+                "tech_stack": ["Python", "Pandas", "Chart.js", "Flask", "SQLite"],
+                "deliverables": ["Interactive dashboard", "Data pipeline", "API documentation"],
+                "difficulty": "Intermediate",
+            },
+            {
+                "title": f"AI-Powered {topic} Recommendation Engine",
+                "description": f"Develop a machine-learning recommendation system for {field} use cases with explainability features.",
+                "tech_stack": ["Python", "Scikit-Learn", "FastAPI", "React"],
+                "deliverables": ["ML model", "REST API", "Front-end UI", "Model evaluation report"],
+                "difficulty": "Advanced",
+            },
+        ],
+    }
+
+
+curriculum_title, field, courses_summary):
     """
     Generates a structured capstone project guideline for the full curriculum.
     Falls back to a high-quality mock if Ollama is unavailable.
