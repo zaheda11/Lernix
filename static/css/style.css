@@ -81,26 +81,26 @@ body.light-mode .sidebar-menu.bottom-menu { border-top-color: rgba(15,118,110,0.
 
 /* Header */
 body.light-mode .app-header {
-    background: #FFFFFF;
-    border-bottom: 1px solid rgba(15,118,110,0.10);
-    box-shadow: 0 2px 10px rgba(15,118,110,0.06);
+    background: #FFFFFF !important;
+    border-bottom: 1px solid rgba(15,118,110,0.10) !important;
+    box-shadow: 0 2px 10px rgba(15,118,110,0.06) !important;
 }
 body.light-mode .mob-header,
 body.light-mode .mob-bottom-nav {
-    background: #FFFFFF;
-    border-color: rgba(15,118,110,0.10);
+    background: #FFFFFF !important;
+    border-color: rgba(15,118,110,0.10) !important;
 }
-body.light-mode .header-nav-link { color: #1F4E4A; }
+body.light-mode .header-nav-link { color: #111827 !important; }
 body.light-mode .header-nav-link:hover,
 body.light-mode .header-nav-link.active {
-    background: rgba(15,118,110,0.08);
-    color: #0F766E;
+    background: rgba(15,118,110,0.08) !important;
+    color: #0F766E !important;
 }
-body.light-mode .header-user-name { color: #111827; }
+body.light-mode .header-user-name { color: #111827 !important; }
 body.light-mode .header-user-role {
-    background: rgba(15,118,110,0.10);
-    border-color: #0F766E;
-    color: #0F766E;
+    background: rgba(15,118,110,0.10) !important;
+    border-color: #0F766E !important;
+    color: #0F766E !important;
 }
 
 /* Glass cards */
@@ -144,6 +144,7 @@ body.light-mode .form-input:focus {
 }
 body.light-mode .form-label { color: #1F4E4A; }
 body.light-mode select.form-input option { background: #FFFFFF; color: #111827; }
+body.light-mode .form-input::placeholder { color: #9CA3AF; }
 
 /* Buttons */
 body.light-mode .btn-primary {
