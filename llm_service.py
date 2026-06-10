@@ -784,6 +784,51 @@ def generate_course_quiz(course_name):
              "explanations": ["Incorrect.", "Correct! TLS encrypts data transmitted over the network.", "Incorrect.", "Incorrect."]},
         ]
 
+    # -- Disaster Management --
+    if any(x in t for x in ["disaster", "emergency", "hazard", "relief", "rescue", "humanitarian", "resilience", "incident command", "vulnerability assessment", "drr", "recovery", "reconstruction", "preparedness"]):
+        return [
+            {"question": "What are the four phases of the disaster management cycle?",
+             "options": ["Plan, Act, Check, Improve", "Mitigation, Preparedness, Response, Recovery", "Prevention, Training, Deployment, Rebuild", "Alert, Mobilise, Respond, Debrief"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! The four phases are Mitigation, Preparedness, Response, and Recovery.", "Incorrect.", "Incorrect."]},
+            {"question": "What does ICS stand for in emergency management?",
+             "options": ["International Crisis System", "Incident Command System", "Integrated Coordination Service", "Immediate Crisis Support"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! ICS (Incident Command System) is the standardised approach to command and coordination of emergency response.", "Incorrect.", "Incorrect."]},
+            {"question": "Which UN framework guides global disaster risk reduction (2015-2030)?",
+             "options": ["Kyoto Protocol", "Paris Agreement", "Sendai Framework", "Hyogo Framework"],
+             "correct_index": 2,
+             "explanations": ["Incorrect.", "Incorrect.", "Correct! The Sendai Framework for Disaster Risk Reduction 2015-2030 is the global blueprint for DRR.", "Incorrect - Hyogo was the previous framework."]},
+            {"question": "What does WASH stand for in humanitarian relief?",
+             "options": ["Water, Agriculture, Shelter, Health", "Water, Sanitation and Hygiene", "Welfare, Aid, Safety, Habitation", "Warning, Assessment, Support, Help"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! WASH covers Water, Sanitation and Hygiene - critical components of humanitarian response.", "Incorrect.", "Incorrect."]},
+            {"question": "What is a Post-Disaster Needs Assessment (PDNA)?",
+             "options": ["A damage insurance form", "A systematic evaluation of disaster impacts on livelihoods, infrastructure, and services to guide recovery planning", "A real-time early warning alert", "A volunteer recruitment process"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! A PDNA quantifies human, physical, and economic losses to inform recovery strategies.", "Incorrect.", "Incorrect."]},
+            {"question": "What is the 'Build Back Better' principle in disaster recovery?",
+             "options": ["Rebuilding faster than before", "Restoring and improving pre-disaster conditions to reduce future vulnerability", "Using cheaper construction materials", "Prioritising urban areas first"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Build Back Better means using recovery as an opportunity to increase resilience, not just restore what existed.", "Incorrect.", "Incorrect."]},
+            {"question": "Which agency leads UN humanitarian coordination in emergencies?",
+             "options": ["UNICEF", "UNHCR", "OCHA", "WFP"],
+             "correct_index": 2,
+             "explanations": ["Incorrect - UNICEF focuses on children.", "Incorrect - UNHCR focuses on refugees.", "Correct! OCHA (Office for the Coordination of Humanitarian Affairs) coordinates the global emergency response.", "Incorrect - WFP focuses on food security."]},
+            {"question": "What is vulnerability in the context of disaster risk?",
+             "options": ["The magnitude of a natural hazard", "The conditions that make people susceptible to harm from a hazard", "The speed of emergency response", "The number of people affected"],
+             "correct_index": 1,
+             "explanations": ["Incorrect - that describes hazard intensity.", "Correct! Vulnerability refers to social, economic, and physical conditions that increase a community's susceptibility to disaster impacts.", "Incorrect.", "Incorrect."]},
+            {"question": "What is the purpose of an Early Warning System (EWS) in disaster management?",
+             "options": ["To document past disasters", "To detect hazard onset and alert at-risk communities with enough lead time to take protective action", "To train emergency responders", "To distribute aid supplies"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! EWS integrates monitoring, forecasting, communication, and community response capacity.", "Incorrect.", "Incorrect."]},
+            {"question": "What does climate change primarily increase in the context of disasters?",
+             "options": ["Response team sizes", "Frequency, intensity, and unpredictability of hydro-meteorological hazards", "International aid budgets", "Building construction costs"],
+             "correct_index": 1,
+             "explanations": ["Incorrect.", "Correct! Climate change amplifies hazards like floods, droughts, and cyclones, increasing disaster risk.", "Incorrect.", "Incorrect."]},
+        ]
+
     # -- Generic healthcare catch-all --
     if "healthcare" in t or ("health" in t and "ai" in t) or ("health" in t and "machine learning" in t):
         return [
@@ -1135,6 +1180,25 @@ def generate_mock_curriculum(title, field, duration):
             ("HI402", "Healthcare AI Deployment & Regulation", "FDA guidelines for AI/ML-based medical devices, deployment pipelines, monitoring, and regulatory submission processes.", 3, "Advanced", 94, ["Regulatory Affairs Specialist"], ["AI Model Validation Report"], ["FDA Regulation", "Model Monitoring"],
              [{"title": "FDA AI/ML Action Plan", "url": "https://www.fda.gov/medical-devices/software-medical-device-samd/artificial-intelligence-and-machine-learning-aiml-enabled-medical-devices"}, {"title": "Google Scholar: FDA AI", "url": "https://scholar.google.com/scholar?q=FDA+AI+ML+medical+devices"}])
         ]
+    elif any(k in combined for k in ["disaster", "emergency", "crisis", "relief", "rescue", "hazard", "risk management", "humanitarian"]):
+        topic_pool = [
+            ("DM101", "Introduction to Disaster Management", "Fundamentals of disaster risk reduction, types of hazards (natural/man-made), disaster cycle phases, and national/international frameworks (Sendai, Hyogo).", 3, "Beginner", 88, ["Disaster Risk Officer"], ["Hazard Risk Assessment Report"], ["Risk Assessment", "DRR"],
+             [{"title": "UNDRR Sendai Framework", "url": "https://www.undrr.org/implementing-sendai-framework"}, {"title": "Coursera: Disaster Preparedness", "url": "https://www.coursera.org/search?query=disaster+management"}]),
+            ("DM102", "Hazard & Vulnerability Assessment", "Methodologies for identifying, mapping, and analysing natural and technological hazards, community vulnerability, and exposure analysis using GIS tools.", 4, "Beginner", 90, ["Risk Analyst", "GIS Specialist"], ["Community Vulnerability Map"], ["GIS", "Risk Mapping"],
+             [{"title": "FEMA Hazard Mitigation", "url": "https://www.fema.gov/emergency-managers/risk-management/hazard-mitigation-planning"}, {"title": "Google Scholar: Hazard Assessment", "url": "https://scholar.google.com/scholar?q=hazard+vulnerability+assessment"}]),
+            ("DM201", "Emergency Response & Operations", "Search and rescue operations, incident command systems (ICS), mass casualty management, logistics coordination, and field communication protocols.", 4, "Intermediate", 93, ["Emergency Response Coordinator"], ["Incident Command Simulation"], ["ICS", "Emergency Operations"],
+             [{"title": "FEMA ICS Training", "url": "https://training.fema.gov/ics/"}, {"title": "WHO Emergency Response", "url": "https://www.who.int/emergencies/operations"}]),
+            ("DM202", "Disaster Preparedness & Community Resilience", "Community-based disaster preparedness planning, early warning systems, public awareness campaigns, and building local resilience frameworks.", 3, "Intermediate", 89, ["Community Resilience Officer"], ["Local Disaster Preparedness Plan"], ["Community DRR", "Early Warning"],
+             [{"title": "UNDP Community Resilience", "url": "https://www.undp.org/tag/community-resilience"}, {"title": "Google Scholar: Disaster Preparedness", "url": "https://scholar.google.com/scholar?q=community+disaster+preparedness"}]),
+            ("DM301", "Disaster Relief & Humanitarian Operations", "Principles of humanitarian assistance, refugee camp management, WASH (water/sanitation/hygiene), food security, and inter-agency coordination (UN OCHA, ICRC, NGOs).", 4, "Intermediate", 92, ["Humanitarian Aid Worker", "Relief Coordinator"], ["Refugee Camp Resource Plan"], ["Humanitarian Aid", "WASH"],
+             [{"title": "OCHA Relief Operations", "url": "https://www.unocha.org/"}, {"title": "ICRC Humanitarian Law", "url": "https://www.icrc.org/en/war-and-law"}]),
+            ("DM302", "Climate Change & Disaster Risk", "Link between climate change and increasing disaster frequency, climate adaptation strategies, loss and damage frameworks, and green resilience infrastructure.", 3, "Intermediate", 91, ["Climate Risk Analyst"], ["Climate Adaptation Plan for a Coastal City"], ["Climate Adaptation", "DRR"],
+             [{"title": "IPCC Climate Reports", "url": "https://www.ipcc.ch/reports/"}, {"title": "UNDRR Climate & Risk", "url": "https://www.undrr.org/implementing-sendai-framework/sendai-framework-disaster-risk-reduction"}]),
+            ("DM401", "Disaster Recovery & Reconstruction", "Post-disaster needs assessment, livelihood restoration, infrastructure reconstruction, psychosocial support, and building back better principles.", 4, "Advanced", 90, ["Recovery Programme Manager"], ["Post-Disaster Needs Assessment Report"], ["Recovery Planning", "Build Back Better"],
+             [{"title": "World Bank Disaster Recovery", "url": "https://www.worldbank.org/en/topic/disasterriskmanagement"}, {"title": "Google Scholar: Disaster Recovery", "url": "https://scholar.google.com/scholar?q=disaster+recovery+reconstruction"}]),
+            ("DM402", "Policy, Law & International Frameworks", "Disaster risk governance, national disaster management acts, international humanitarian law, Sustainable Development Goals (SDGs), and institutional coordination mechanisms.", 3, "Advanced", 88, ["Policy Analyst", "Disaster Risk Governance Officer"], ["National DRR Policy Brief"], ["Disaster Policy", "International Law"],
+             [{"title": "Sendai Framework Monitor", "url": "https://sendaimonitor.undrr.org/"}, {"title": "UN SDG & DRR", "url": "https://sdgs.un.org/goals"}])
+        ]
     elif any(k in combined for k in ["computer", "software", "programming", "engineering", "web", "mobile", "backend", "frontend"]):
         topic_pool = [
             ("CS101", "Introduction to Python Programming", "Fundamental control flows, variables, data structures (lists, dicts), and writing clean modular programs in Python.", 3, "Beginner", 90, ["Python Developer"], ["CLI Calculator", "Contact Book App"], ["Python", "Algorithms"]),
@@ -1240,7 +1304,22 @@ def generate_mock_study_plan(course_name, weekly_hours):
     cn = course_name.lower()
 
     # Course-aware week topic progressions
-    if any(k in cn for k in ["healthcare", "health", "medical", "clinical", "biomedical"]):
+    if any(k in cn for k in ["disaster", "emergency", "crisis", "hazard", "relief", "rescue", "humanitarian", "resilience", "recovery"]):
+        week_topics = [
+            ("Disaster Risk Fundamentals & Hazard Assessment",
+             ["Disaster cycle phases: mitigation, preparedness, response, recovery", "Types of hazards: natural, technological, complex emergencies", "GIS-based hazard mapping and vulnerability analysis"],
+             "Produce a hazard risk assessment map for a sample region"),
+            ("Emergency Response Operations & ICS",
+             ["Incident Command System (ICS) structure and roles", "Search and rescue coordination and triage protocols", "Logistics, communication, and resource mobilisation in the field"],
+             "Run a tabletop emergency response simulation exercise"),
+            ("Humanitarian Relief & Community Resilience",
+             ["WASH, food security, and shelter standards in relief operations", "Community-based disaster preparedness planning", "Inter-agency coordination: UN OCHA, ICRC, NGO clusters"],
+             "Develop a community disaster preparedness plan"),
+            ("Recovery, Policy & International Frameworks",
+             ["Post-disaster needs assessment and build-back-better principles", "Sendai Framework, SDGs, and national DRR legislation", "Climate change adaptation and long-term resilience strategies"],
+             "Write a policy brief on a disaster recovery programme"),
+        ]
+    elif any(k in cn for k in ["healthcare", "health", "medical", "clinical", "biomedical"]):
         week_topics = [
             ("Health Data Foundations & EHR Systems",
              ["Overview of EHR systems and HL7/FHIR standards", "Loading and exploring clinical datasets with Pandas", "Data cleaning: missing values, outliers in patient records"],
