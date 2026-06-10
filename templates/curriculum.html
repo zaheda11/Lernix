@@ -228,44 +228,63 @@
 
 <!-- Export Modal -->
 <div class="modal-overlay" id="export-modal" style="display:none;">
-    <div class="glass-card modal-container" style="max-width:480px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid var(--glass-border); padding-bottom:0.8rem;">
-            <h2 style="font-size:1.2rem; color:var(--color-secondary);"><i class="fa-solid fa-file-export"></i> Export Report</h2>
+    <div class="glass-card modal-container" style="max-width:520px;">
+        <!-- Header -->
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.2rem; border-bottom:1px solid var(--glass-border); padding-bottom:0.8rem;">
+            <h2 style="font-size:1.15rem; color:var(--color-secondary); display:flex; align-items:center; gap:0.5rem;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color:var(--color-primary);"></i>
+                AI-Powered Report Generator
+            </h2>
             <button style="background:none;border:none;color:white;font-size:1.3rem;cursor:pointer;" onclick="closeExportModal()"><i class="fa-solid fa-xmark"></i></button>
         </div>
+
+        <!-- Prompt input -->
         <div class="form-group">
-            <label class="form-label">Export Topic / Title</label>
-            <input type="text" id="export-topic-input" class="form-input" placeholder="e.g. Machine Learning Semester 2 Report" value="{{ curriculum.title }}">
-        </div>
-        <div class="form-group">
-            <label class="form-label">File Format</label>
-            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-top:0.3rem;">
-                <label style="cursor:pointer;">
-                    <input type="radio" name="export-fmt" value="pdf" checked style="display:none;" id="fmt-pdf">
-                    <div class="export-fmt-card" onclick="selectFmt('pdf')" id="card-pdf" style="border:2px solid var(--color-primary); border-radius:var(--radius-sm); padding:0.75rem; text-align:center; background:rgba(99,102,241,0.1); transition:all 0.2s;">
-                        <i class="fa-solid fa-file-pdf" style="font-size:1.5rem; color:var(--color-danger); display:block; margin-bottom:0.3rem;"></i>
-                        <span style="font-size:0.8rem; font-weight:600;">PDF</span>
-                    </div>
-                </label>
-                <label style="cursor:pointer;">
-                    <input type="radio" name="export-fmt" value="json" style="display:none;" id="fmt-json">
-                    <div class="export-fmt-card" onclick="selectFmt('json')" id="card-json" style="border:2px solid var(--glass-border); border-radius:var(--radius-sm); padding:0.75rem; text-align:center; background:rgba(255,255,255,0.03); transition:all 0.2s;">
-                        <i class="fa-solid fa-file-code" style="font-size:1.5rem; color:var(--color-primary); display:block; margin-bottom:0.3rem;"></i>
-                        <span style="font-size:0.8rem; font-weight:600;">JSON</span>
-                    </div>
-                </label>
-                <label style="cursor:pointer;">
-                    <input type="radio" name="export-fmt" value="csv" style="display:none;" id="fmt-csv">
-                    <div class="export-fmt-card" onclick="selectFmt('csv')" id="card-csv" style="border:2px solid var(--glass-border); border-radius:var(--radius-sm); padding:0.75rem; text-align:center; background:rgba(255,255,255,0.03); transition:all 0.2s;">
-                        <i class="fa-solid fa-file-csv" style="font-size:1.5rem; color:var(--color-success); display:block; margin-bottom:0.3rem;"></i>
-                        <span style="font-size:0.8rem; font-weight:600;">CSV</span>
-                    </div>
-                </label>
+            <label class="form-label" style="display:flex; align-items:center; gap:0.4rem;">
+                <i class="fa-solid fa-lightbulb" style="color:var(--color-warning); font-size:0.85rem;"></i>
+                Report Topic / Prompt
+            </label>
+            <input type="text" id="export-topic-input" class="form-input"
+                   placeholder="e.g. Artificial Intelligence, Cloud Security, Python Roadmap"
+                   value="{{ curriculum.title }}">
+            <div style="font-size:0.75rem; color:var(--text-muted); margin-top:0.3rem;">
+                AI will dynamically generate the full report from your topic — no templates used.
             </div>
         </div>
-        <button class="btn btn-primary" style="width:100%; margin-top:0.5rem;" onclick="submitExport()">
-            <i class="fa-solid fa-download"></i> Download Report
+
+        <!-- Format selector -->
+        <div class="form-group">
+            <label class="form-label">Output Format</label>
+            <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:0.5rem; margin-top:0.3rem;">
+                {% set fmts = [('pdf','fa-file-pdf','var(--color-danger)','PDF'),
+                               ('docx','fa-file-word','#2b7cd3','DOCX'),
+                               ('txt','fa-file-lines','var(--color-secondary)','TXT'),
+                               ('md','fa-brands fa-markdown','var(--color-accent)','MD'),
+                               ('csv','fa-file-csv','var(--color-success)','CSV')] %}
+                {% for val,icon,clr,label in fmts %}
+                <div class="export-fmt-card" id="card-{{ val }}"
+                     onclick="selectFmt('{{ val }}')"
+                     style="border:2px solid {% if val=='pdf' %}var(--color-primary){% else %}var(--glass-border){% endif %};
+                            background:{% if val=='pdf' %}rgba(99,102,241,0.12){% else %}rgba(255,255,255,0.03){% endif %};
+                            border-radius:var(--radius-sm); padding:0.65rem 0.3rem;
+                            text-align:center; cursor:pointer; transition:all 0.18s;">
+                    <i class="fa-solid {{ icon }}" style="font-size:1.4rem; color:{{ clr }}; display:block; margin-bottom:0.25rem;"></i>
+                    <span style="font-size:0.72rem; font-weight:700; color:var(--text-secondary);">{{ label }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Generate button -->
+        <button class="btn btn-primary" style="width:100%; margin-top:0.25rem; font-size:0.95rem; padding:0.75rem;" id="export-submit-btn" onclick="submitExport()">
+            <i class="fa-solid fa-bolt"></i> Generate &amp; Download Report
         </button>
+
+        <!-- Progress status -->
+        <div id="export-progress" style="display:none; margin-top:1rem; text-align:center;">
+            <div class="glow-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 0.5rem;"></div>
+            <div id="export-progress-text" style="font-size:0.82rem; color:var(--text-muted);">Initialising AI report engine...</div>
+        </div>
     </div>
 </div>
 
@@ -314,37 +333,71 @@
 
     // ── Export Modal ──
     let selectedFmt = 'pdf';
+    const ALL_FMTS = ['pdf','docx','txt','md','csv'];
+    const PHRASES = [
+        'Analysing topic with AI...','Building curriculum structure...','Generating semester content...',
+        'Mapping skills and resources...','Compiling career roadmap...','Assembling capstone projects...',
+        'Rendering final document...'
+    ];
+    let phraseTimer;
+
     function openExportModal() { document.getElementById('export-modal').style.display = 'flex'; }
-    function closeExportModal() { document.getElementById('export-modal').style.display = 'none'; }
+    function closeExportModal() {
+        document.getElementById('export-modal').style.display = 'none';
+        clearInterval(phraseTimer);
+        const btn = document.getElementById('export-submit-btn');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Generate &amp; Download Report';
+        document.getElementById('export-progress').style.display = 'none';
+    }
     function selectFmt(fmt) {
         selectedFmt = fmt;
-        ['pdf','json','csv'].forEach(f => {
+        ALL_FMTS.forEach(f => {
             const card = document.getElementById('card-' + f);
+            if (!card) return;
             card.style.border = f === fmt ? '2px solid var(--color-primary)' : '2px solid var(--glass-border)';
-            card.style.background = f === fmt ? 'rgba(99,102,241,0.1)' : 'rgba(255,255,255,0.03)';
+            card.style.background = f === fmt ? 'rgba(99,102,241,0.12)' : 'rgba(255,255,255,0.03)';
         });
     }
     function submitExport() {
-        const topic = document.getElementById('export-topic-input').value.trim() || '{{ curriculum.title }}';
-        const btn = document.querySelector('#export-modal .btn-primary');
-        btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Preparing...';
-        fetch('/api/curriculum/{{ curriculum.id }}/export/custom', {
+        const topic = document.getElementById('export-topic-input').value.trim();
+        if (!topic) { alert('Please enter a report topic.'); return; }
+        const btn = document.getElementById('export-submit-btn');
+        const progress = document.getElementById('export-progress');
+        const progressText = document.getElementById('export-progress-text');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+        progress.style.display = 'block';
+        let pi = 0;
+        progressText.textContent = PHRASES[0];
+        phraseTimer = setInterval(() => {
+            pi = (pi + 1) % PHRASES.length;
+            progressText.textContent = PHRASES[pi];
+        }, 1800);
+        fetch('/api/report/generate', {
             method: 'POST',
             headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({topic, format: selectedFmt})
+            body: JSON.stringify({topic, format: selectedFmt, curriculum_id: {{ curriculum.id }} })
         })
-        .then(r => r.blob())
+        .then(r => {
+            if (!r.ok) throw new Error('Server error ' + r.status);
+            return r.blob();
+        })
         .then(blob => {
-            const ext = selectedFmt;
+            clearInterval(phraseTimer);
+            const ext = selectedFmt === 'md' ? 'md' : selectedFmt;
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = topic.replace(/\s+/g,'_') + '.' + ext;
+            a.download = topic.replace(/[^a-zA-Z0-9]+/g,'_') + '.' + ext;
             a.click();
             closeExportModal();
         })
-        .finally(() => {
+        .catch(err => {
+            clearInterval(phraseTimer);
             btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-download"></i> Download Report';
+            btn.innerHTML = '<i class="fa-solid fa-bolt"></i> Generate &amp; Download Report';
+            progress.style.display = 'none';
+            alert('Report generation failed. Please try again.');
         });
     }
     window.addEventListener('click', e => {

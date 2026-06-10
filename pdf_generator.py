@@ -629,7 +629,403 @@ class _CoverDoc(BaseDocTemplate):
             _cover(self.canv, self._topic, self._curr)
 
 
-# ── Public API ────────────────────────────────────────────────────
+# ── Plain Text report ────────────────────────────────────────────
+def generate_txt_report(topic, curriculum_data, report):
+    now = datetime.now().strftime("%B %d, %Y")
+    lines = []
+    sep  = "=" * 72
+    sep2 = "-" * 72
+
+    lines += [sep, f"  LERNIX AI — PROFESSIONAL CURRICULUM REPORT", f"  Topic  : {topic}",
+               f"  Field  : {curriculum_data.get('field_of_study', topic)}",
+               f"  Date   : {now}", f"  By     : LERNIX AI (IBM Granite)", sep, ""]
+
+    # TOC
+    lines += ["TABLE OF CONTENTS", sep2,
+              "  1. Program Overview", "  2. Semester-wise Curriculum",
+              "  3. Learning Resources", "  4. Skills Mapping",
+              "  5. Career Roadmap", "  6. Capstone Recommendations", ""]
+
+    # 1. Overview
+    tc = sum(len(s["courses"]) for s in curriculum_data.get("semesters", []))
+    cr = sum(c.get("credits",3) for s in curriculum_data.get("semesters",[]) for c in s["courses"])
+    lines += [sep, "1. PROGRAM OVERVIEW", sep2,
+              f"Program Title   : {topic}",
+              f"Field of Study  : {curriculum_data.get('field_of_study', topic)}",
+              f"Duration        : {curriculum_data.get('duration_semesters',4)} Semesters",
+              f"Total Courses   : {tc}",
+              f"Total Credits   : {cr}",
+              f"Target Audience : {report.get('target_audience','Undergraduate / Professional')}",
+              f"Paradigm        : Outcome-Based Education (OBE)", ""]
+    lines.append("Program Description:")
+    lines.append(report.get("program_description", f"A structured {topic} program."))
+    lines.append("")
+    lines.append("Learning Objectives:")
+    for obj in report.get("learning_objectives", []):
+        lines.append(f"  * {obj}")
+    lines.append("")
+
+    # 2. Semesters
+    lines += [sep, "2. SEMESTER-WISE CURRICULUM", sep2]
+    for sem in curriculum_data.get("semesters", []):
+        lines.append(f"\nSemester {sem['semester_number']}")
+        lines.append(sep2)
+        for c in sem["courses"]:
+            lines += [
+                f"  [{c.get('code','')}] {c.get('name','')}",
+                f"    Credits      : {c.get('credits',3)}",
+                f"    Difficulty   : {c.get('difficulty','')}",
+                f"    Weekly Hours : {c.get('weekly_hours', c.get('credits',3)*2)} hrs",
+                f"    Relevance    : {c.get('industry_relevance_score',90)}%",
+                f"    Prerequisites: {', '.join(c.get('prerequisites',[])) or 'None'}",
+                f"    Description  : {c.get('description','')}",
+                "    Learning Outcomes:",
+            ]
+            for lo in c.get("learning_outcomes", []):
+                lines.append(f"      - {lo}")
+            if c.get("career_opportunities"):
+                lines.append(f"    Career Pathways: {', '.join(c['career_opportunities'])}")
+            if c.get("recommended_projects"):
+                lines.append(f"    Capstone Ideas : {', '.join(c['recommended_projects'])}")
+            if c.get("assessment_methods"):
+                lines.append(f"    Assessments    : {', '.join(c['assessment_methods'])}")
+            lines.append("")
+
+    # 3. Resources
+    lines += [sep, "3. LEARNING RESOURCES", sep2]
+    res = report.get("learning_resources", {})
+    for cat, items in [("Books", res.get("books",[])), ("Documentation", res.get("documentation",[])),
+                        ("Video Courses", res.get("video_courses",[])),
+                        ("Research Papers", res.get("research_papers",[])),
+                        ("Industry References", res.get("industry_references",[]))]:
+        if not items: continue
+        lines.append(f"\n{cat}:")
+        for item in items:
+            if isinstance(item, dict):
+                line = f"  * {item.get('title','')}"
+                if item.get("author"): line += f" — {item['author']}"
+                if item.get("url"): line += f"  ({item['url']})"
+                lines.append(line)
+            else:
+                lines.append(f"  * {item}")
+    lines.append("")
+
+    # 4. Skills
+    lines += [sep, "4. SKILLS MAPPING", sep2]
+    sm = report.get("skills_mapping", {})
+    for cat, items in sm.items():
+        if items:
+            lines.append(f"{cat.replace('_',' ').title()}: {', '.join(items)}")
+    lines.append("")
+    if report.get("skill_levels"):
+        lines.append("Skill Levels:")
+        for skill, level in report["skill_levels"].items():
+            bar = "#" * int(level / 10) + "." * (10 - int(level / 10))
+            lines.append(f"  {skill:<30} [{bar}] {level}%")
+    lines.append("")
+
+    # 5. Career
+    lines += [sep, "5. CAREER ROADMAP", sep2]
+    cr_data = report.get("career_roadmap", {})
+    for level, roles in cr_data.items():
+        lines.append(f"\n{level.replace('_',' ').title()}:")
+        for r in (roles if isinstance(roles, list) else []):
+            if isinstance(r, dict):
+                lines.append(f"  * {r.get('title','')} — {r.get('description','')}  |  {r.get('salary','—')}")
+            else:
+                lines.append(f"  * {r}")
+    lines.append("")
+    if report.get("salary_insights"):
+        lines.append("Salary Insights:")
+        for lvl, sal in report["salary_insights"].items():
+            lines.append(f"  {lvl:<20}: {sal}")
+    lines.append("")
+
+    # 6. Capstone
+    lines += [sep, "6. CAPSTONE PROJECT RECOMMENDATIONS", sep2]
+    for i, proj in enumerate(report.get("capstone_projects", []), 1):
+        if isinstance(proj, dict):
+            lines += [f"\n{i}. {proj.get('title','')}",
+                      f"   {proj.get('description','')}",
+                      f"   Tech Stack : {', '.join(proj.get('tech_stack',[]))}",
+                      f"   Difficulty : {proj.get('difficulty','')}",
+                      "   Deliverables:"]
+            for d in proj.get("deliverables", []):
+                lines.append(f"     - {d}")
+        else:
+            lines.append(f"{i}. {proj}")
+    lines += ["", sep, "Generated by LERNIX AI  |  IBM Granite  |  ACM/IEEE Standards", sep]
+    return "\n".join(lines)
+
+
+# ── Markdown report ───────────────────────────────────────────────
+def generate_md_report(topic, curriculum_data, report):
+    now = datetime.now().strftime("%B %d, %Y")
+    tc = sum(len(s["courses"]) for s in curriculum_data.get("semesters", []))
+    cr = sum(c.get("credits",3) for s in curriculum_data.get("semesters",[]) for c in s["courses"])
+    lines = []
+
+    lines += [f"# {topic}",
+              f"> **Generated by LERNIX AI** | {now} | IBM Granite | ACM/IEEE Standards",
+              "---", ""]
+
+    lines += ["## Table of Contents",
+              "1. [Program Overview](#1-program-overview)",
+              "2. [Semester-wise Curriculum](#2-semester-wise-curriculum)",
+              "3. [Learning Resources](#3-learning-resources)",
+              "4. [Skills Mapping](#4-skills-mapping)",
+              "5. [Career Roadmap](#5-career-roadmap)",
+              "6. [Capstone Recommendations](#6-capstone-recommendations)",
+              "---", ""]
+
+    # 1. Overview
+    lines += ["## 1. Program Overview", ""]
+    lines += [f"| Field | Value |",
+              f"|---|---|",
+              f"| Program Title | {topic} |",
+              f"| Field of Study | {curriculum_data.get('field_of_study', topic)} |",
+              f"| Duration | {curriculum_data.get('duration_semesters',4)} Semesters |",
+              f"| Total Courses | {tc} |",
+              f"| Total Credits | {cr} |",
+              f"| Target Audience | {report.get('target_audience','Undergraduate / Professional')} |",
+              f"| Design Paradigm | Outcome-Based Education (OBE) |", ""]
+    lines += ["### Description", report.get("program_description",
+              f"A structured {topic} program."), ""]
+    lines += ["### Learning Objectives"]
+    for obj in report.get("learning_objectives", []):
+        lines.append(f"- {obj}")
+    lines.append("")
+
+    # 2. Semesters
+    lines += ["---", "## 2. Semester-wise Curriculum", ""]
+    for sem in curriculum_data.get("semesters", []):
+        lines.append(f"### Semester {sem['semester_number']}")
+        lines += ["| Code | Course | Credits | Difficulty | Hrs/Wk | Relevance |",
+                  "|---|---|---|---|---|---|"] 
+        for c in sem["courses"]:
+            lines.append(
+                f"| {c.get('code','')} | {c.get('name','')} | {c.get('credits',3)} "
+                f"| {c.get('difficulty','')} | {c.get('weekly_hours', c.get('credits',3)*2)} "
+                f"| {c.get('industry_relevance_score',90)}% |")
+        lines.append("")
+        for c in sem["courses"]:
+            lines.append(f"#### {c.get('code','')}: {c.get('name','')}")
+            lines.append(c.get("description", ""))
+            if c.get("prerequisites"):
+                lines.append(f"**Prerequisites:** {', '.join(c['prerequisites'])}")
+            if c.get("learning_outcomes"):
+                lines.append("**Learning Outcomes:**")
+                for lo in c["learning_outcomes"]:
+                    lines.append(f"- {lo}")
+            if c.get("career_opportunities"):
+                lines.append(f"**Career Pathways:** {', '.join(c['career_opportunities'])}")
+            if c.get("recommended_projects"):
+                lines.append(f"**Recommended Capstone:** {', '.join(c['recommended_projects'])}")
+            if c.get("assessment_methods"):
+                lines.append(f"**Assessments:** {', '.join(c['assessment_methods'])}")
+            lines.append("")
+
+    # 3. Resources
+    lines += ["---", "## 3. Learning Resources", ""]
+    res = report.get("learning_resources", {})
+    for cat, items in [("Books & Textbooks", res.get("books",[])),
+                        ("Official Documentation", res.get("documentation",[])),
+                        ("Video Courses & MOOCs", res.get("video_courses",[])),
+                        ("Research Papers", res.get("research_papers",[])),
+                        ("Industry References", res.get("industry_references",[]))]:
+        if not items: continue
+        lines.append(f"### {cat}")
+        for item in items:
+            if isinstance(item, dict):
+                link = f"[{item.get('title','')}]({item.get('url','#')})" if item.get("url") else item.get("title","")
+                auth = f" — *{item['author']}*" if item.get("author") else ""
+                lines.append(f"- {link}{auth}")
+            else:
+                lines.append(f"- {item}")
+        lines.append("")
+
+    # 4. Skills
+    lines += ["---", "## 4. Skills Mapping", ""]
+    sm = report.get("skills_mapping", {})
+    for cat, items in sm.items():
+        if items:
+            lines.append(f"**{cat.replace('_',' ').title()}:** {', '.join(items)}  ")
+    lines.append("")
+    if report.get("skill_levels"):
+        lines += ["### Skill Progression",
+                  "| Skill | Level |", "|---|---|"] 
+        for skill, level in report["skill_levels"].items():
+            bar = "█" * int(level / 10) + "░" * (10 - int(level / 10))
+            lines.append(f"| {skill} | {bar} {level}% |")
+    lines.append("")
+
+    # 5. Career
+    lines += ["---", "## 5. Career Roadmap", ""]
+    for level, roles in report.get("career_roadmap", {}).items():
+        lines.append(f"### {level.replace('_',' ').title()}")
+        lines += ["| Role | Description | Salary |", "|---|---|---|"] 
+        for r in (roles if isinstance(roles, list) else []):
+            if isinstance(r, dict):
+                lines.append(f"| {r.get('title','')} | {r.get('description','')} | {r.get('salary','—')} |")
+        lines.append("")
+    if report.get("salary_insights"):
+        lines.append("### Salary Insights")
+        for lvl, sal in report["salary_insights"].items():
+            lines.append(f"- **{lvl}**: {sal}")
+    lines.append("")
+
+    # 6. Capstone
+    lines += ["---", "## 6. Capstone Project Recommendations", ""]
+    for i, proj in enumerate(report.get("capstone_projects", []), 1):
+        if isinstance(proj, dict):
+            lines += [f"### {i}. {proj.get('title','')}",
+                      proj.get("description", ""),
+                      f"**Tech Stack:** {', '.join(proj.get('tech_stack',[]))}",
+                      f"**Difficulty:** {proj.get('difficulty','')}",
+                      "**Deliverables:**"]
+            for d in proj.get("deliverables", []):
+                lines.append(f"- {d}")
+        else:
+            lines.append(f"### {i}. {proj}")
+        lines.append("")
+
+    lines += ["---",
+              f"*Generated by LERNIX AI | IBM Granite | {now}*"]
+    return "\n".join(lines)
+
+
+# ── DOCX report (python-docx) ─────────────────────────────────────
+def generate_docx_report(topic, curriculum_data, report):
+    try:
+        from docx import Document
+        from docx.shared import Pt, RGBColor, Inches
+        from docx.enum.text import WD_ALIGN_PARAGRAPH
+    except ImportError:
+        # If python-docx not installed, fall back to txt wrapped as docx bytes
+        txt = generate_txt_report(topic, curriculum_data, report)
+        return txt.encode('utf-8')
+
+    doc = Document()
+    now = datetime.now().strftime("%B %d, %Y")
+
+    def _heading(text, level=1, color=None):
+        h = doc.add_heading(text, level=level)
+        if color:
+            for run in h.runs:
+                run.font.color.rgb = RGBColor(*color)
+        return h
+
+    def _para(text, bold=False, size=None):
+        p = doc.add_paragraph()
+        run = p.add_run(text)
+        run.bold = bold
+        if size: run.font.size = Pt(size)
+        return p
+
+    def _bullet(text):
+        p = doc.add_paragraph(style='List Bullet')
+        p.add_run(text)
+
+    # Cover
+    doc.add_heading(topic, 0)
+    _para(f"Field of Study: {curriculum_data.get('field_of_study', topic)}")
+    _para(f"Generated by LERNIX AI  |  {now}  |  IBM Granite")
+    doc.add_page_break()
+
+    # 1. Overview
+    tc = sum(len(s["courses"]) for s in curriculum_data.get("semesters", []))
+    cr = sum(c.get("credits",3) for s in curriculum_data.get("semesters",[]) for c in s["courses"])
+    _heading("1. Program Overview")
+    table = doc.add_table(rows=1, cols=2)
+    table.style = 'Table Grid'
+    for label, val in [
+        ("Program Title", topic),
+        ("Field of Study", curriculum_data.get('field_of_study', topic)),
+        ("Duration", f"{curriculum_data.get('duration_semesters',4)} Semesters"),
+        ("Total Courses", str(tc)),
+        ("Total Credits", str(cr)),
+        ("Target Audience", report.get('target_audience','Undergraduate')),
+    ]:
+        row = table.add_row().cells
+        row[0].text = label
+        row[1].text = str(val)
+    table.rows[0].cells[0].text = ""
+    table.rows[0].cells[1].text = ""
+    doc.add_paragraph()
+    _heading("Program Description", 2)
+    _para(report.get("program_description", f"A structured {topic} program."))
+    _heading("Learning Objectives", 2)
+    for obj in report.get("learning_objectives", []):
+        _bullet(obj)
+    doc.add_page_break()
+
+    # 2. Semesters
+    _heading("2. Semester-wise Curriculum")
+    for sem in curriculum_data.get("semesters", []):
+        _heading(f"Semester {sem['semester_number']}", 2)
+        for c in sem["courses"]:
+            _heading(f"{c.get('code','')}: {c.get('name','')}", 3)
+            for label, val in [
+                ("Credits", str(c.get('credits',3))),
+                ("Difficulty", c.get('difficulty','')),
+                ("Weekly Hours", f"{c.get('weekly_hours', c.get('credits',3)*2)} hrs"),
+                ("Relevance", f"{c.get('industry_relevance_score',90)}%"),
+                ("Prerequisites", ', '.join(c.get('prerequisites',[])) or 'None'),
+            ]:
+                p = doc.add_paragraph()
+                p.add_run(f"{label}: ").bold = True
+                p.add_run(str(val))
+            _para(c.get("description", ""))
+            _heading("Learning Outcomes", 4)
+            for lo in c.get("learning_outcomes", []):
+                _bullet(lo)
+            if c.get("career_opportunities"):
+                p = doc.add_paragraph()
+                p.add_run("Career Pathways: ").bold = True
+                p.add_run(", ".join(c["career_opportunities"]))
+            if c.get("assessment_methods"):
+                p = doc.add_paragraph()
+                p.add_run("Assessments: ").bold = True
+                p.add_run(", ".join(c["assessment_methods"]))
+    doc.add_page_break()
+
+    # 3. Skills
+    _heading("3. Skills Mapping")
+    sm = report.get("skills_mapping", {})
+    for cat, items in sm.items():
+        if items:
+            p = doc.add_paragraph()
+            p.add_run(f"{cat.replace('_',' ').title()}: ").bold = True
+            p.add_run(", ".join(items))
+
+    # 4. Career
+    doc.add_page_break()
+    _heading("4. Career Roadmap")
+    for level, roles in report.get("career_roadmap", {}).items():
+        _heading(level.replace('_',' ').title(), 2)
+        for r in (roles if isinstance(roles, list) else []):
+            if isinstance(r, dict):
+                _bullet(f"{r.get('title','')} — {r.get('description','')}  |  {r.get('salary','—')}")
+
+    # 5. Capstone
+    doc.add_page_break()
+    _heading("5. Capstone Project Recommendations")
+    for i, proj in enumerate(report.get("capstone_projects", []), 1):
+        if isinstance(proj, dict):
+            _heading(f"{i}. {proj.get('title','')}", 2)
+            _para(proj.get("description", ""))
+            p = doc.add_paragraph()
+            p.add_run("Tech Stack: ").bold = True
+            p.add_run(", ".join(proj.get("tech_stack", [])))
+            for d in proj.get("deliverables", []):
+                _bullet(d)
+
+    buf = io.BytesIO()
+    doc.save(buf)
+    buf.seek(0)
+    return buf.getvalue()
+
+
 def generate_curriculum_pdf(curriculum_data):
     """Backward-compat wrapper — used by existing export routes."""
     return generate_professional_report(
