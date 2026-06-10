@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Subscription Plans | LERNIX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-gem"></i> Subscription Plans</h1>
+        <p class="page-subtitle">Select a membership plan to adjust your LERNIX curriculum generation limits.</p>
+    </div>
+</div>
+
+<div class="glass-card" style="margin-bottom: 2rem; background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(9, 13, 22, 0.6) 100%);">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;" class="sub-status-card">
+        <div>
+            <h2 style="font-size:1.4rem; margin-bottom:0.3rem;">Current Status: <span style="color:var(--color-secondary); text-transform:uppercase;">{{ user_details.subscription_tier }} Plan</span></h2>
+            <p style="color:var(--text-muted); font-size:0.9rem;">
+                Account: <b>{{ user_details.email }}</b> | Member Role: <b>{{ user_details.role | capitalize }}</b>
+            </p>
+        </div>
+        <div>
+            {% if user_details.subscription_tier == 'free' %}
+                <span class="badge badge-amber" style="padding:0.5rem 1rem; font-size:0.85rem;"><i class="fa-solid fa-hourglass-half"></i> Generations This Month: {{ user_details.generation_count or 0 }} / 5</span>
+            {% else %}
+                <span class="badge badge-green" style="padding:0.5rem 1rem; font-size:0.85rem;"><i class="fa-solid fa-circle-check"></i> Unlimited Curriculum Access Enabled</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div id="sub-upgrade-alert" class="alert alert-success" style="display:none; margin-bottom:2rem;">
+    <span id="sub-upgrade-msg">Plan upgraded</span>
+</div>
+
+<!-- Pricing grid -->
+<div class="pricing-grid">
+    
+    <!-- Free Tier -->
+    <div class="pricing-card {% if user_details.subscription_tier == 'free' %}popular{% endif %}">
+        <div>
+            <h3 class="pricing-tier">Free Tier</h3>
+            <div class="pricing-price">$0<span style="font-size:1rem; font-weight:400; color:var(--text-muted);">/mo</span></div>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check"></i> Max 5 Curriculums Per Month</li>
+                <li><i class="fa-solid fa-check"></i> Prerequisite Flowcharts</li>
+                <li><i class="fa-solid fa-check"></i> Standard Student Study Plans</li>
+                <li><i class="fa-solid fa-xmark" style="color:var(--color-danger);"></i> No Career Intelligence Stats</li>
+                <li><i class="fa-solid fa-xmark" style="color:var(--color-danger);"></i> No PDF Export Options</li>
+            </ul>
+        </div>
+        <button class="btn btn-secondary" style="width:100%;" {% if user_details.subscription_tier == 'free' %}disabled{% endif %} onclick="selectSubscriptionTier('free')">
+            {% if user_details.subscription_tier == 'free' %}Active Plan{% else %}Downgrade to Free{% endif %}
+        </button>
+    </div>
+
+    <!-- Monthly Plan -->
+    <div class="pricing-card {% if user_details.subscription_tier == 'monthly' %}popular{% endif %}">
+        {% if user_details.subscription_tier == 'monthly' %}
+            <span class="pricing-badge">Active</span>
+        {% endif %}
+        <div>
+            <h3 class="pricing-tier">Monthly Plan</h3>
+            <div class="pricing-price">$19<span style="font-size:1rem; font-weight:400; color:var(--text-muted);">/mo</span></div>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check"></i> Unlimited Curriculum Generations</li>
+                <li><i class="fa-solid fa-check"></i> Full Visual Pathway Analytics</li>
+                <li><i class="fa-solid fa-check"></i> PDF, JSON, and CSV Export Links</li>
+                <li><i class="fa-solid fa-check"></i> AI Course Quizzes & Explanations</li>
+                <li><i class="fa-solid fa-check"></i> Student Progress Tracking Logs</li>
+            </ul>
+        </div>
+        <button class="btn {% if user_details.subscription_tier == 'monthly' %}btn-secondary{% else %}btn-primary{% endif %}" style="width:100%;" {% if user_details.subscription_tier == 'monthly' %}disabled{% endif %} onclick="selectSubscriptionTier('monthly')">
+            {% if user_details.subscription_tier == 'monthly' %}Active Plan{% else %}Upgrade to Monthly{% endif %}
+        </button>
+    </div>
+
+    <!-- Annual Plan -->
+    <div class="pricing-card {% if user_details.subscription_tier == 'annual' %}popular{% endif %}">
+        {% if user_details.subscription_tier == 'annual' %}
+            <span class="pricing-badge">Active</span>
+        {% endif %}
+        <div>
+            <h3 class="pricing-tier">Annual Plan</h3>
+            <div class="pricing-price">$149<span style="font-size:1rem; font-weight:400; color:var(--text-muted);">/yr</span></div>
+            <ul class="pricing-features">
+                <li><i class="fa-solid fa-check"></i> All Monthly features included</li>
+                <li><i class="fa-solid fa-check"></i> Save 35% compared to Monthly billing</li>
+                <li><i class="fa-solid fa-check"></i> Multi-user Educator Group licensing</li>
+                <li><i class="fa-solid fa-check"></i> Direct API Integrations support</li>
+                <li><i class="fa-solid fa-check"></i> Priority Local Server connection</li>
+            </ul>
+        </div>
+        <button class="btn {% if user_details.subscription_tier == 'annual' %}btn-secondary{% else %}btn-accent{% endif %}" style="width:100%;" {% if user_details.subscription_tier == 'annual' %}disabled{% endif %} onclick="selectSubscriptionTier('annual')">
+            {% if user_details.subscription_tier == 'annual' %}Active Plan{% else %}Upgrade to Annual{% endif %}
+        </button>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function selectSubscriptionTier(tier) {
+        if (!confirm(`Confirm mock transition to the ${tier.toUpperCase()} subscription tier?`)) {
+            return;
+        }
+
+        const alertEl = document.getElementById('sub-upgrade-alert');
+        const msgEl = document.getElementById('sub-upgrade-msg');
+        alertEl.style.display = 'none';
+
+        fetch('/api/subscription/upgrade', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tier: tier })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alertEl.className = 'alert alert-success';
+                msgEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${data.message}`;
+                alertEl.style.display = 'flex';
+                
+                // Refresh page after short delay to show updated status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1200);
+            } else {
+                alertEl.className = 'alert alert-danger';
+                msgEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${data.message}`;
+                alertEl.style.display = 'flex';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alertEl.className = 'alert alert-danger';
+            msgEl.innerText = "Error completing checkout simulation.";
+            alertEl.style.display = 'flex';
+        });
+    }
+</script>
+{% endblock %}

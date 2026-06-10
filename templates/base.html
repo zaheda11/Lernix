@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="{% block meta_description %}LERNIX - AI-powered curriculum planner{% endblock %}">
+    <title>{% block title %}LERNIX | AI Curriculum Generator{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        /* ── Mobile inline-style overrides ── */
+        @media (max-width: 768px) {
+            [style*="max-width: 600px"],[style*="max-width:600px"],
+            [style*="max-width: 800px"],[style*="max-width:800px"],
+            [style*="max-width: 700px"],[style*="max-width:700px"] {
+                max-width: 100% !important; margin-left:0 !important; margin-right:0 !important;
+            }
+            [style*="grid-template-columns: 2.2fr"],
+            [style*="grid-template-columns: 2fr"] { grid-template-columns: 1fr !important; }
+            #assistant-form-card,#assistant-loader,
+            #generator-card,#limits-card,#auth-card { margin:0 !important; width:100% !important; }
+        }
+        @media (max-width: 480px) {
+            [style*="font-size:1.4rem"],[style*="font-size: 1.4rem"] { font-size:1rem !important; }
+            [style*="font-size:1.3rem"],[style*="font-size: 1.3rem"] { font-size:0.95rem !important; }
+            [style*="padding:2rem"],[style*="padding: 2rem"] { padding:1rem !important; }
+        }
+        /* Sidebar backdrop */
+        .sidebar-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:1099; backdrop-filter:blur(2px); }
+        .sidebar-backdrop.show { display:block; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ════════ MOBILE TOP HEADER (mobile only) ════════ -->
+<div class="mob-header" id="mob-header">
+    <a href="{{ url_for('dashboard_page') if 'user_id' in session else url_for('login_page') }}" class="mob-logo">
+        <div class="logo-icon" style="width:28px;height:28px;font-size:0.75rem;flex-shrink:0;">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <span>LERNIX</span>
+    </a>
+
+    {% if 'user_id' in session %}
+    <div class="mob-header-user">
+        <span class="mob-header-name">{{ session.get('full_name', '').split()[0] }}</span>
+        <span class="user-badge" style="font-size:0.58rem;">{{ session.get('role') }}</span>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Sidebar backdrop -->
+<div class="sidebar-backdrop" id="sidebar-backdrop" onclick="closeSidebar()"></div>
+
+<!-- ════════ SIDEBAR (overlay on mobile, fixed on desktop) ════════ -->
+<aside class="app-sidebar" id="app-sidebar-nav">
+    <div class="sidebar-logo">
+        <div class="logo-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+        <span>LERNIX</span>
+    </div>
+
+    {% if 'user_id' in session %}
+        <div style="margin-top:1rem;padding:0 0.5rem;">
+            <span style="font-size:0.72rem;color:var(--text-muted);">Signed in as:</span>
+            <div style="font-weight:600;font-size:0.88rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-top:0.15rem;">{{ session.get('full_name') }}</div>
+            <div style="display:flex;gap:0.4rem;align-items:center;margin-top:0.35rem;flex-wrap:wrap;">
+                <span class="user-badge">{{ session.get('role') }}</span>
+                <a href="{{ url_for('subscription_page') }}" class="user-badge" style="background:rgba(6,182,212,0.15);border-color:var(--color-secondary);color:var(--color-secondary);font-size:0.6rem;">
+                    <i class="fa-solid fa-gem"></i> Plans
+                </a>
+            </div>
+        </div>
+
+        <ul class="sidebar-menu middle-menu">
+            {% if session.get('role') == 'admin' %}
+                <li><a href="{{ url_for('dashboard_page') }}" class="sidebar-link admin-sidebar-link {% if request.path=='/dashboard' %}active{% endif %}" data-tab="dashboard" onclick="if(window.switchAdminTab)switchAdminTab('dashboard');closeSidebar()"><i class="fa-solid fa-chart-pie"></i> Dashboard</a></li>
+                <li><a href="#" class="sidebar-link admin-sidebar-link" data-tab="users"     onclick="event.preventDefault();if(window.switchAdminTab)switchAdminTab('users');closeSidebar()"><i class="fa-solid fa-users"></i> User Management</a></li>
+                <li><a href="#" class="sidebar-link admin-sidebar-link" data-tab="curricula" onclick="event.preventDefault();if(window.switchAdminTab)switchAdminTab('curricula');closeSidebar()"><i class="fa-solid fa-graduation-cap"></i> Curriculum Mgmt</a></li>
+                <li><a href="#" class="sidebar-link admin-sidebar-link" data-tab="courses"   onclick="event.preventDefault();if(window.switchAdminTab)switchAdminTab('courses');closeSidebar()"><i class="fa-solid fa-book"></i> Subject & Courses</a></li>
+                <li><a href="#" class="sidebar-link admin-sidebar-link" data-tab="analytics" onclick="event.preventDefault();if(window.switchAdminTab)switchAdminTab('analytics');closeSidebar()"><i class="fa-solid fa-chart-line"></i> Analytics</a></li>
+                <li><a href="#" class="sidebar-link admin-sidebar-link" data-tab="feedback"  onclick="event.preventDefault();if(window.switchAdminTab)switchAdminTab('feedback');closeSidebar()"><i class="fa-solid fa-comments"></i> Feedback</a></li>
+                <li><a href="#" class="sidebar-link admin-sidebar-link" data-tab="settings"  onclick="event.preventDefault();if(window.switchAdminTab)switchAdminTab('settings');closeSidebar()"><i class="fa-solid fa-gear"></i> Settings</a></li>
+            {% else %}
+                <li><a href="{{ url_for('history_page') }}"      class="sidebar-link {% if request.path=='/history' %}active{% endif %}"             onclick="closeSidebar()"><i class="fa-solid fa-clock-rotate-left"></i> History</a></li>
+                <li><a href="{{ url_for('assistant_page') }}"    class="sidebar-link {% if request.path.startswith('/assistant') %}active{% endif %}" onclick="closeSidebar()"><i class="fa-solid fa-user-astronaut"></i> Study Assistant</a></li>
+                <li><a href="{{ url_for('subscription_page') }}" class="sidebar-link {% if request.path=='/subscription' %}active{% endif %}"         onclick="closeSidebar()"><i class="fa-solid fa-gem"></i> Subscription Plans</a></li>
+                <li><a href="{{ url_for('faq_page') }}"          class="sidebar-link {% if request.path=='/faq' %}active{% endif %}"                  onclick="closeSidebar()"><i class="fa-solid fa-circle-question"></i> FAQ & Guides</a></li>
+                <li><a href="{{ url_for('contact_page') }}"      class="sidebar-link {% if request.path=='/contact' %}active{% endif %}"              onclick="closeSidebar()"><i class="fa-solid fa-envelope"></i> Contact Support</a></li>
+                <li><a href="{{ url_for('feedback_page') }}"     class="sidebar-link {% if request.path=='/feedback' %}active{% endif %}"             onclick="closeSidebar()"><i class="fa-solid fa-thumbs-up"></i> Feedback</a></li>
+            {% endif %}
+        </ul>
+
+        <ul class="sidebar-menu bottom-menu">
+            <li><a href="{{ url_for('profile_page') }}"  class="sidebar-link {% if request.path=='/profile' %}active{% endif %}" onclick="closeSidebar()"><i class="fa-solid fa-user-gear"></i> Profile Settings</a></li>
+            <li><a href="{{ url_for('logout_action') }}" class="sidebar-link" style="color:var(--color-danger);" onclick="closeSidebar()"><i class="fa-solid fa-right-from-bracket"></i> Logout</a></li>
+        </ul>
+    {% else %}
+        <ul class="sidebar-menu middle-menu">
+            <li><a href="{{ url_for('faq_page') }}"     class="sidebar-link"><i class="fa-solid fa-circle-question"></i> FAQ & Guides</a></li>
+            <li><a href="{{ url_for('contact_page') }}" class="sidebar-link"><i class="fa-solid fa-envelope"></i> Contact Support</a></li>
+        </ul>
+        <ul class="sidebar-menu bottom-menu">
+            <li><a href="{{ url_for('login_page') }}" class="btn btn-primary" style="width:100%;"><i class="fa-solid fa-right-to-bracket"></i> Sign In</a></li>
+        </ul>
+    {% endif %}
+</aside>
+
+<!-- ════════ MAIN CONTENT WRAPPER ════════ -->
+<div class="app-content-wrapper">
+
+    {% if 'user_id' in session %}
+    <!-- Desktop header only -->
+    <header class="app-header">
+        <nav class="header-nav">
+            {% if session.get('role') == 'student' %}
+                <a href="{{ url_for('dashboard_page') }}"  class="header-nav-link {% if request.path=='/dashboard' %}active{% endif %}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="{{ url_for('assistant_page') }}"  class="header-nav-link {% if request.path.startswith('/assistant') %}active{% endif %}"><i class="fa-solid fa-user-astronaut"></i> Study Assistant</a>
+            {% elif session.get('role') == 'educator' %}
+                <a href="{{ url_for('dashboard_page') }}"  class="header-nav-link {% if request.path=='/dashboard' %}active{% endif %}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+                <a href="{{ url_for('generate_page') }}"   class="header-nav-link {% if request.path=='/generate' %}active{% endif %}"><i class="fa-solid fa-wand-magic-sparkles"></i> Generator</a>
+                <a href="{{ url_for('tracker_page') }}"    class="header-nav-link {% if request.path=='/tracker' %}active{% endif %}"><i class="fa-solid fa-users-viewfinder"></i> Student Tracker</a>
+            {% elif session.get('role') == 'admin' %}
+                <a href="{{ url_for('dashboard_page') }}"  class="header-nav-link {% if request.path=='/dashboard' %}active{% endif %}"><i class="fa-solid fa-chart-pie"></i> Dashboard</a>
+            {% endif %}
+        </nav>
+        <div class="header-user-info">
+            <span class="header-user-name">{{ session.get('full_name') }}</span>
+            <span class="header-user-role">{{ session.get('role') }}</span>
+        </div>
+    </header>
+    {% endif %}
+
+    <main class="app-main" id="app-main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }}" role="alert">
+                            <span><i class="fa-solid {% if category == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}"></i> {{ message }}</span>
+                            <button style="background:none;border:none;color:inherit;cursor:pointer;" onclick="this.parentElement.remove()"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="app-footer">
+        <p>&copy; 2026 LERNIX. All rights reserved.</p>
+    </footer>
+</div>
+
+<!-- ════════ MOBILE BOTTOM TAB BAR ════════ -->
+{% if 'user_id' in session %}
+<nav class="mob-bottom-nav" id="mob-bottom-nav">
+    {% if session.get('role') == 'student' %}
+        <a href="{{ url_for('dashboard_page') }}"  class="mob-tab {% if request.path=='/dashboard' %}active{% endif %}"><i class="fa-solid fa-house"></i><span>Home</span></a>
+        <a href="{{ url_for('history_page') }}"    class="mob-tab {% if request.path=='/history' %}active{% endif %}"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
+        <a href="{{ url_for('assistant_page') }}"  class="mob-tab {% if request.path.startswith('/assistant') %}active{% endif %}"><i class="fa-solid fa-user-astronaut"></i><span>Assistant</span></a>
+        <a href="{{ url_for('subscription_page') }}" class="mob-tab {% if request.path=='/subscription' %}active{% endif %}"><i class="fa-solid fa-gem"></i><span>Plans</span></a>
+        <a href="{{ url_for('profile_page') }}" class="mob-tab {% if request.path=='/profile' %}active{% endif %}"><i class="fa-solid fa-user-gear"></i><span>Profile</span></a>
+    {% elif session.get('role') == 'educator' %}
+        <a href="{{ url_for('dashboard_page') }}"  class="mob-tab {% if request.path=='/dashboard' %}active{% endif %}"><i class="fa-solid fa-house"></i><span>Home</span></a>
+        <a href="{{ url_for('generate_page') }}"   class="mob-tab {% if request.path=='/generate' %}active{% endif %}"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Generate</span></a>
+        <a href="{{ url_for('history_page') }}"    class="mob-tab {% if request.path=='/history' %}active{% endif %}"><i class="fa-solid fa-clock-rotate-left"></i><span>History</span></a>
+        <a href="{{ url_for('tracker_page') }}"    class="mob-tab {% if request.path=='/tracker' %}active{% endif %}"><i class="fa-solid fa-users-viewfinder"></i><span>Tracker</span></a>
+        <a href="{{ url_for('profile_page') }}" class="mob-tab {% if request.path=='/profile' %}active{% endif %}"><i class="fa-solid fa-user-gear"></i><span>Profile</span></a>
+    {% elif session.get('role') == 'admin' %}
+        <a href="{{ url_for('dashboard_page') }}"  class="mob-tab {% if request.path=='/dashboard' %}active{% endif %}"><i class="fa-solid fa-house"></i><span>Home</span></a>
+        <button class="mob-tab" onclick="if(window.switchAdminTab)switchAdminTab('users')"><i class="fa-solid fa-users"></i><span>Users</span></button>
+        <button class="mob-tab" onclick="if(window.switchAdminTab)switchAdminTab('analytics')"><i class="fa-solid fa-chart-line"></i><span>Analytics</span></button>
+        <button class="mob-tab" onclick="if(window.switchAdminTab)switchAdminTab('settings')"><i class="fa-solid fa-gear"></i><span>Settings</span></button>
+        <a href="{{ url_for('logout_action') }}" class="mob-tab" style="color:var(--color-danger);"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></a>
+    {% endif %}
+</nav>
+{% endif %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+    function toggleSidebar() {
+        document.getElementById('app-sidebar-nav').classList.toggle('open');
+        document.getElementById('sidebar-backdrop').classList.toggle('show');
+    }
+    function closeSidebar() {
+        document.getElementById('app-sidebar-nav').classList.remove('open');
+        document.getElementById('sidebar-backdrop').classList.remove('show');
+    }
+    function toggleMobileSidebar() { toggleSidebar(); }
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,343 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard | LERNIX{% endblock %}
+
+{% block extra_head %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title" id="dashboard-heading">LERNIX Dashboard</h1>
+        <p class="page-subtitle">Welcome back, {{ session.get('full_name') }} ({{ session.get('role') | capitalize }})</p>
+    </div>
+    <div>
+        {% if session.get('role') in ['educator', 'admin'] %}
+            <a href="{{ url_for('generate_page') }}" class="btn btn-primary" id="dashboard-create-btn">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> New Curriculum
+            </a>
+        {% else %}
+            <a href="{{ url_for('assistant_page') }}" class="btn btn-primary" id="dashboard-assistant-btn">
+                <i class="fa-solid fa-compass"></i> View Study Assistant
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Quick Statistics Banner -->
+<div class="grid-4" style="margin-bottom: 2.5rem;">
+    <div class="metric-card" id="stat-curricula">
+        <div class="metric-label">Curricula Logged</div>
+        <div class="metric-value">{{ stats.get('total_curricula', 0) }}</div>
+        <div style="color:var(--text-muted); font-size:0.8rem;"><i class="fa-solid fa-graduation-cap"></i> Total database entries</div>
+    </div>
+    
+    <div class="metric-card" id="stat-plans">
+        <div class="metric-label">Study Plans Generated</div>
+        <div class="metric-value">{{ stats.get('total_plans', 0) }}</div>
+        <div style="color:var(--text-muted); font-size:0.8rem;"><i class="fa-solid fa-book-open-reader"></i> Customized roadmaps</div>
+    </div>
+    
+    <div class="metric-card" id="stat-downloads">
+        <div class="metric-label">Exports Executed</div>
+        <div class="metric-value">{{ stats.get('total_downloads', 0) }}</div>
+        <div style="color:var(--text-muted); font-size:0.8rem;"><i class="fa-solid fa-file-arrow-down"></i> PDF, JSON, CSV files</div>
+    </div>
+    
+    <div class="metric-card" id="stat-satisfaction">
+        <div class="metric-label">Satisfaction Score</div>
+        <div class="metric-value">{{ stats.get('avg_rating', 5.0) }} ★</div>
+        <div style="color:var(--text-muted); font-size:0.8rem;"><i class="fa-solid fa-thumbs-up"></i> User feedback average</div>
+    </div>
+</div>
+
+<div class="dashboard-grid">
+    
+    <!-- Left: Analytics / History (order:1 = appears first/left) -->
+    <div style="display:flex; flex-direction:column; gap:2rem; order:1;">
+        
+        <!-- Interactive Analytics Panel -->
+        <div class="glass-card" id="dashboard-analytics-panel">
+            <h2 style="font-size:1.4rem; margin-bottom:1rem;"><i class="fa-solid fa-chart-line"></i> Curriculum Performance Analytics</h2>
+            
+            <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 2rem 0; border: 1px dashed var(--glass-border); border-radius:var(--radius-md);" id="chart-placeholder">
+                <i class="fa-solid fa-chart-simple" style="font-size:3rem; color:var(--text-muted); margin-bottom:1rem;"></i>
+                <p style="color:var(--text-muted); margin-bottom:1rem;">Select a curriculum from your history to view credit ratios and academic workload graphs.</p>
+                
+                {% if user_history %}
+                    <select id="analytics-curr-selector" class="form-input" style="max-width:320px;" onchange="loadAnalyticsForCurriculum(this.value)">
+                        <option value="">-- Choose Curriculum --</option>
+                        {% for item in user_history %}
+                            <option value="{{ item.id }}">{{ item.title }}</option>
+                        {% endfor %}
+                    </select>
+                {% else %}
+                    <p style="font-size:0.85rem; color:var(--text-muted);">
+                        {% if session.get('role') == 'student' %}
+                            No active paths. Go to the history or assistant page to opt-in!
+                        {% else %}
+                            No programs available. Generate one to start!
+                        {% endif %}
+                    </p>
+                {% endif %}
+            </div>
+
+            <!-- Graph Grid -->
+            <div id="chart-visualizer-grid" class="grid-2" style="display:none; margin-top:1.5rem;">
+                <div>
+                    <h3 style="font-size:1rem; text-align:center; color:var(--text-secondary); margin-bottom:0.5rem;">Semester Workload (Weekly Hours)</h3>
+                    <div class="chart-container">
+                        <canvas id="workloadChart"></canvas>
+                    </div>
+                </div>
+                <div>
+                    <h3 style="font-size:1rem; text-align:center; color:var(--text-secondary); margin-bottom:0.5rem;">Course Credit Split</h3>
+                    <div class="chart-container">
+                        <canvas id="creditsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Listing -->
+        <div class="glass-card" id="dashboard-history-panel">
+            <h2 style="font-size:1.4rem; margin-bottom:1rem;">
+                <i class="fa-solid fa-clock-rotate-left"></i> 
+                {% if session.get('role') == 'student' %}Your Active Learning Paths{% else %}Recent Learning Pathways{% endif %}
+            </h2>
+            
+            {% if user_history %}
+                <div class="table-wrapper">
+                    <table class="custom-table mob-table-card" id="recent-curricula-table">
+                        <thead>
+                            <tr>
+                                <th>Curriculum Name</th>
+                                <th>Field</th>
+                                <th>Semesters</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in user_history %}
+                                <tr>
+                                    <td data-label="Name"><b>{{ item.title }}</b></td>
+                                    <td data-label="Field">{{ item.field_of_study }}</td>
+                                    <td data-label="Semesters">{{ item.duration_semesters }} Semesters</td>
+                                    <td data-label="Action">
+                                        <a href="{{ url_for('curriculum_page', id=item.id) }}" class="btn btn-secondary" style="padding:0.35rem 0.75rem; font-size:0.8rem;">
+                                            <i class="fa-solid fa-eye"></i> View
+                                        </a>
+                                        <a href="{{ url_for('roadmap_page', id=item.id) }}" class="btn btn-accent" style="padding:0.35rem 0.75rem; font-size:0.8rem;">
+                                            <i class="fa-solid fa-route"></i> Roadmap
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <div style="text-align:right; margin-top:1rem;">
+                    <a href="{{ url_for('history_page') }}" style="font-size:0.9rem;"><i class="fa-solid fa-list"></i> View All History</a>
+                </div>
+            {% else %}
+                <p style="color:var(--text-muted); text-align:center; padding:2rem 0;">You have not selected or generated any pathways yet.</p>
+            {% endif %}
+        </div>
+
+        {% if session.get('role') == 'student' %}
+        <!-- Saved Study Guides -->
+        <div class="glass-card" id="dashboard-saved-guides-panel">
+            <h2 style="font-size:1.4rem; margin-bottom:1rem;"><i class="fa-solid fa-graduation-cap"></i> Your Saved Study Guides</h2>
+            {% if saved_plans %}
+                <div class="table-wrapper">
+                    <table class="custom-table mob-table-card" id="saved-guides-table">
+                        <thead>
+                            <tr>
+                                <th>Guide Title</th>
+                                <th>Curriculum</th>
+                                <th>Created At</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for plan in saved_plans %}
+                                <tr>
+                                    <td data-label="Title"><b>{{ plan.title }}</b></td>
+                                    <td data-label="Curriculum">{{ plan.curriculum_title }}</td>
+                                    <td data-label="Date">{{ plan.created_at.split(' ')[0] if plan.created_at else 'N/A' }}</td>
+                                    <td data-label="Action">
+                                        <a href="/assistant/plan/{{ plan.id }}" class="btn btn-secondary" style="padding:0.35rem 0.75rem; font-size:0.8rem;">
+                                            <i class="fa-solid fa-book-open"></i> Open Guide
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p style="color:var(--text-muted); text-align:center; padding:2rem 0;">You have not generated any custom study guides yet. Use the Study Assistant to build one.</p>
+            {% endif %}
+        </div>
+
+        <!-- Quiz History -->
+        <div class="glass-card" id="dashboard-quizzes-panel">
+            <h2 style="font-size:1.4rem; margin-bottom:1rem;"><i class="fa-solid fa-square-poll-vertical"></i> Your Quiz History & Mistake Reports</h2>
+            {% if quizzes %}
+                <div class="table-wrapper">
+                    <table class="custom-table" id="quizzes-table">
+                        <thead>
+                            <tr>
+                                <th>Course Code</th>
+                                <th>Curriculum</th>
+                                <th>Score</th>
+                                <th>Attempted At</th>
+                                <th>Mistake Report</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for quiz in quizzes %}
+                                <tr>
+                                    <td><b>{{ quiz.course_code }}</b></td>
+                                    <td>{{ quiz.curriculum_title }}</td>
+                                    <td>
+                                        <span class="badge {% if quiz.score == quiz.total_questions %}badge-success{% else %}badge-info{% endif %}" style="padding: 0.25rem 0.5rem; border-radius: 4px; font-weight: bold; background: rgba(6, 182, 212, 0.15); border: 1px solid var(--color-secondary); color: var(--color-secondary);">
+                                            {{ quiz.score }} / {{ quiz.total_questions }}
+                                        </span>
+                                    </td>
+                                    <td>{{ quiz.timestamp.split(' ')[0] if quiz.timestamp else 'N/A' }}</td>
+                                    <td>
+                                        {% if quiz.wrong_answers_explanation %}
+                                            <button class="btn btn-secondary" style="padding:0.35rem 0.75rem; font-size:0.8rem;" onclick="showMistakeReport('{{ quiz.course_code }}', {{ quiz.id }})">
+                                                <i class="fa-solid fa-circle-exclamation"></i> View Mistakes
+                                            </button>
+                                            <div id="mistake-data-{{ quiz.id }}" style="display:none;">{{ quiz.wrong_answers_explanation }}</div>
+                                        {% else %}
+                                            <span style="color:var(--text-muted); font-size:0.85rem;">No errors / Perfect score!</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <p style="color:var(--text-muted); text-align:center; padding:2rem 0;">You have not taken any quizzes yet.</p>
+            {% endif %}
+        </div>
+
+        <!-- Mistake Explanation Modal -->
+        <div id="mistake-modal" class="modal-overlay">
+            <div class="glass-card modal-container" style="max-width: 700px; padding: 2rem;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; border-bottom:1px solid var(--glass-border); padding-bottom:0.8rem;">
+                    <h2 id="mistake-modal-title" style="font-size:1.4rem;"><i class="fa-solid fa-graduation-cap"></i> Mistake Analysis & Explanations</h2>
+                    <button class="btn btn-secondary" style="padding:0.4rem 0.8rem;" onclick="closeMistakeModal()"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div id="mistake-modal-body" style="font-size:0.95rem; line-height:1.6; color:var(--text-secondary); max-height: 50vh; overflow-y: auto; white-space: pre-wrap; padding-right: 0.5rem;">
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Right: Profile / Admin Logs / Help & Tips (order:2 = appears second/right) -->
+    <div style="display:flex; flex-direction:column; gap:2rem; order:2;">
+        
+        <!-- User Profile Card -->
+        <div class="glass-card" style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(15, 23, 42, 0.6) 100%);">
+            <div style="display:flex; align-items:center; gap:1.2rem; margin-bottom:1.5rem;">
+                <div style="width:60px; height:60px; border-radius:50%; background:linear-gradient(135deg, var(--color-primary), var(--color-secondary)); display:flex; align-items:center; justify-content:center; font-size:1.8rem; font-weight:800; border:2px solid rgba(255,255,255,0.2);">
+                    {{ session.get('full_name')[0] | upper }}
+                </div>
+                <div>
+                    <h3 style="font-size:1.2rem; margin-bottom:0.1rem;">{{ session.get('full_name') }}</h3>
+                    <span class="user-badge">{{ session.get('role') }}</span>
+                </div>
+            </div>
+            
+            <div style="font-size:0.88rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:0.4rem; margin-bottom:1.2rem;">
+                <div><b>Email:</b> {{ user_details.email }}</div>
+                <div><b>Subscription:</b> <span style="color:var(--color-secondary); font-weight:600; text-transform:uppercase;">{{ user_details.subscription_tier }}</span></div>
+                {% if user_details.role == 'student' %}
+                    <div><b>Roll No:</b> {{ user_details.roll_no or 'N/A' }}</div>
+                    <div><b>Branch:</b> {{ user_details.branch or 'N/A' }}</div>
+                    <div><b>Year:</b> {{ user_details.year or 'N/A' }}</div>
+                {% endif %}
+            </div>
+            
+            <a href="{{ url_for('profile_page') }}" class="btn btn-secondary" style="width:100%; font-size:0.85rem;"><i class="fa-solid fa-user-pen"></i> Manage Profile</a>
+        </div>
+
+        {% if session.get('role') == 'admin' %}
+            <!-- Admin Logs -->
+            <div class="glass-card" style="border-color: rgba(168, 85, 247, 0.3);">
+                <h2 style="font-size:1.2rem; margin-bottom:1rem; color:#d8b4fe;"><i class="fa-solid fa-shield-halved"></i> Admin System Logs</h2>
+                
+                <div style="font-size:0.85rem; display:flex; flex-direction:column; gap:0.8rem;">
+                    <div>
+                        <span style="font-weight:600;">System Roles Distribution:</span>
+                        <ul style="padding-left:1.2rem; margin-top:0.3rem;">
+                            {% for role, count in stats.get('role_distribution', {}).items() %}
+                                <li>{{ role | capitalize }}: {{ count }} accounts</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <span style="font-weight:600;">Recent User Feedback:</span>
+                        <div style="max-height:120px; overflow-y:auto; padding:0.5rem; background:rgba(0,0,0,0.2); border-radius:var(--radius-sm); margin-top:0.3rem;">
+                            {% for item in feedbacks[:3] %}
+                                <div style="margin-bottom:0.5rem; border-bottom:1px solid rgba(255,255,255,0.05); padding-bottom:0.3rem;">
+                                    <b>{{ item.full_name }}</b> ({{ item.rating }} ★): <span style="color:var(--text-secondary);">"{{ item.comments }}"</span>
+                                </div>
+                            {% endfor %}
+                            {% if not feedbacks %}
+                                <span style="color:var(--text-muted)">No feedbacks submitted yet.</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- FAQ quick widget -->
+        <div class="glass-card">
+            <h3 style="font-size:1.1rem; margin-bottom:0.8rem;"><i class="fa-solid fa-circle-question"></i> Help & Tips</h3>
+            <p style="font-size:0.88rem; color:var(--text-muted); margin-bottom:0.8rem;">How do I generate a career-focused study plan?</p>
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:1.2rem;">Head to the "Study Assistant" page, select a course, and set your weekly study commitment. LERNIX builds milestones instantly!</p>
+            <a href="{{ url_for('faq_page') }}" style="font-size:0.85rem; font-weight:600;">Explore the full FAQ <i class="fa-solid fa-arrow-right-long"></i></a>
+        </div>
+    </div>
+    
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% if session.get('role') == 'student' %}
+<script>
+function showMistakeReport(courseCode, quizId) {
+    const dataContainer = document.getElementById('mistake-data-' + quizId);
+    if (!dataContainer) return;
+    
+    document.getElementById('mistake-modal-title').innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> Mistake Analysis: ${courseCode}`;
+    document.getElementById('mistake-modal-body').textContent = dataContainer.textContent;
+    document.getElementById('mistake-modal').style.display = 'flex';
+}
+
+function closeMistakeModal() {
+    document.getElementById('mistake-modal').style.display = 'none';
+}
+
+// Close modal if clicking outside container
+window.addEventListener('click', function(e) {
+    const modal = document.getElementById('mistake-modal');
+    if (e.target === modal) {
+        closeMistakeModal();
+    }
+});
+</script>
+{% endif %}
+{% endblock %}

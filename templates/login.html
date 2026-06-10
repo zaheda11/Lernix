@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+
+{% block title %}Authentication | LERNIX{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="glass-card" id="auth-card">
+        
+        <!-- Toggle Tabs -->
+        <div style="display:flex; justify-content:space-around; margin-bottom:2rem; border-bottom:1px solid var(--glass-border); padding-bottom:1rem;">
+            <button class="btn" id="tab-login-btn" style="background:none; border:none; color:var(--text-primary); font-size:1.1rem; border-bottom:2px solid var(--color-primary); border-radius:0; padding:0.5rem 1rem;" onclick="switchAuthTab('login')">
+                <i class="fa-solid fa-lock"></i> Sign In
+            </button>
+            <button class="btn" id="tab-register-btn" style="background:none; border:none; color:var(--text-muted); font-size:1.1rem; border-bottom:2px solid transparent; border-radius:0; padding:0.5rem 1rem;" onclick="switchAuthTab('register')">
+                <i class="fa-solid fa-user-plus"></i> Register
+            </button>
+        </div>
+
+        <div id="auth-error-alert" class="alert alert-danger" style="display:none; margin-bottom:1.5rem;">
+            <span id="auth-error-msg">Error message goes here</span>
+        </div>
+
+        <!-- Login Form -->
+        <form id="login-form" onsubmit="handleAuthSubmit(event, 'login')">
+            <h2 class="form-title" style="margin-bottom:1.5rem; text-align:center;">Welcome to LERNIX</h2>
+            <div class="form-group">
+                <label class="form-label" for="login-email">Email Address</label>
+                <input type="email" id="login-email" class="form-input" placeholder="e.g. educator@lernix.edu" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="login-password">Password</label>
+                <input type="password" id="login-password" class="form-input" placeholder="••••••••" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1rem;" id="login-submit-btn">
+                <i class="fa-solid fa-right-to-bracket"></i> Sign In
+            </button>
+
+            <div class="auth-links">
+                <a href="{{ url_for('forgot_password_page') }}" id="login-forgot-pwd">Forgot Password?</a>
+                <span style="color:var(--text-muted);">Demo credentials: <i>student@lernix.edu</i> (Pwd: <i>student123</i>) | <i>educator@lernix.edu</i> (Pwd: <i>educator123</i>)</span>
+            </div>
+        </form>
+
+        <!-- Registration Form (Hidden by default) -->
+        <form id="register-form" onsubmit="handleAuthSubmit(event, 'register')" style="display:none;">
+            <h2 class="form-title" style="margin-bottom:1.5rem; text-align:center;">Create Account</h2>
+            <div class="form-group">
+                <label class="form-label" for="reg-name">Full Name</label>
+                <input type="text" id="reg-name" class="form-input" placeholder="e.g. Dr. John Doe" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="reg-email">Email Address</label>
+                <input type="email" id="reg-email" class="form-input" placeholder="e.g. student@lernix.edu" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label" for="reg-password">Password</label>
+                <input type="password" id="reg-password" class="form-input" placeholder="Min 6 characters" required minlength="6">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="reg-role">Account Role</label>
+                <select id="reg-role" class="form-input" onchange="toggleStudentFields(this.value)">
+                    <option value="student">Student (Select roadmaps & tracks)</option>
+                    <option value="educator">Educator (Generate curricula & track progress)</option>
+                </select>
+            </div>
+
+            <!-- Student specific fields -->
+            <div id="student-only-fields" style="border-top:1px dashed var(--glass-border); padding-top:1rem; margin-top:1rem;">
+                <div class="grid-3" style="gap:0.8rem;">
+                    <div class="form-group">
+                        <label class="form-label" for="reg-year">Current Year</label>
+                        <select id="reg-year" class="form-input">
+                            <option value="1st Year">1st Year</option>
+                            <option value="2nd Year">2nd Year</option>
+                            <option value="3rd Year" selected>3rd Year</option>
+                            <option value="4th Year">4th Year</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="reg-branch">Branch / Major</label>
+                        <input type="text" id="reg-branch" class="form-input" placeholder="e.g. Computer Science" value="Computer Science">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label" for="reg-roll">Roll Number</label>
+                        <input type="text" id="reg-roll" class="form-input" placeholder="e.g. CS-2026-102" value="CS-2026-102">
+                    </div>
+                </div>
+            </div>
+            
+            <button type="submit" class="btn btn-accent" style="width:100%; margin-top:1rem;" id="register-submit-btn">
+                <i class="fa-solid fa-user-plus"></i> Create Account
+            </button>
+        </form>
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleStudentFields(role) {
+        const studentFields = document.getElementById('student-only-fields');
+        if (role === 'student') {
+            studentFields.style.display = 'block';
+        } else {
+            studentFields.style.display = 'none';
+        }
+    }
+
+    function switchAuthTab(tab) {
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const loginTab = document.getElementById('tab-login-btn');
+        const registerTab = document.getElementById('tab-register-btn');
+        const alertDiv = document.getElementById('auth-error-alert');
+        
+        alertDiv.style.display = 'none';
+
+        if (tab === 'login') {
+            loginForm.style.display = 'block';
+            registerForm.style.display = 'none';
+            loginTab.style.borderBottomColor = 'var(--color-primary)';
+            loginTab.style.color = 'var(--text-primary)';
+            registerTab.style.borderBottomColor = 'transparent';
+            registerTab.style.color = 'var(--text-muted)';
+        } else {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+            loginTab.style.borderBottomColor = 'transparent';
+            loginTab.style.color = 'var(--text-muted)';
+            registerTab.style.borderBottomColor = 'var(--color-accent)';
+            registerTab.style.color = 'var(--text-primary)';
+            toggleStudentFields(document.getElementById('reg-role').value);
+        }
+    }
+
+    function handleAuthSubmit(event, mode) {
+        event.preventDefault();
+        const alertDiv = document.getElementById('auth-error-alert');
+        const errorMsg = document.getElementById('auth-error-msg');
+        
+        alertDiv.style.display = 'none';
+        let payload = {};
+        let endpoint = '';
+
+        if (mode === 'login') {
+            payload = {
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-password').value
+            };
+            endpoint = '/api/auth/login';
+        } else {
+            const role = document.getElementById('reg-role').value;
+            payload = {
+                full_name: document.getElementById('reg-name').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-password').value,
+                role: role
+            };
+            
+            if (role === 'student') {
+                payload.year = document.getElementById('reg-year').value;
+                payload.branch = document.getElementById('reg-branch').value;
+                payload.roll_no = document.getElementById('reg-roll').value;
+            }
+            endpoint = '/api/auth/register';
+        }
+
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/dashboard';
+            } else {
+                errorMsg.innerText = data.message || "An authentication error occurred.";
+                alertDiv.style.display = 'flex';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            errorMsg.innerText = "Connection lost. Please check if database is online.";
+            alertDiv.style.display = 'flex';
+        });
+    }
+</script>
+{% endblock %}

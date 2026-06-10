@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Student Tracker | LERNIX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-users-viewfinder"></i> Student Progress Tracker</h1>
+        <p class="page-subtitle">Track students who opted into your curricula, review study checklist completions, and inspect quiz grades.</p>
+    </div>
+</div>
+
+{% if tracker_data %}
+    <div style="display:flex; flex-direction:column; gap:2.5rem;">
+        {% for data in tracker_data %}
+            <div class="glass-card" id="tracker-curr-{{ data.curriculum.id }}">
+                <h2 style="font-size:1.4rem; color:var(--color-secondary); border-bottom:1px solid var(--glass-border); padding-bottom:0.8rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+                    <span><i class="fa-solid fa-graduation-cap"></i> {{ data.curriculum.title }}</span>
+                    <span style="font-size:0.8rem; font-weight:400; color:var(--text-muted);">ID: #{{ data.curriculum.id }} | Field: {{ data.curriculum.field_of_study }}</span>
+                </h2>
+
+                <!-- 1. Students list & Checklist progress -->
+                <div style="margin-bottom:2rem;">
+                    <h3 style="font-size:1.1rem; margin-bottom:0.8rem; color:var(--text-primary);"><i class="fa-solid fa-user-check"></i> Enrolled Student Progress</h3>
+                    
+                    {% if data.students %}
+                        <div class="table-wrapper">
+                            <table class="custom-table mob-table-card">
+                                <thead>
+                                    <tr>
+                                        <th>Student Name</th><th>Roll Number</th><th>Branch</th><th>Academic Year</th><th>Tasks Completed</th><th>Progress Bar</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for stud in data.students %}
+                                        <tr>
+                                            <td data-label="Name"><b>{{ stud.full_name }}</b><br><span style="font-size:0.75rem;color:var(--text-muted)">{{ stud.email }}</span></td>
+                                            <td data-label="Roll"><code style="background:rgba(255,255,255,0.05);padding:0.1rem 0.3rem;border-radius:3px;">{{ stud.roll_no or 'N/A' }}</code></td>
+                                            <td data-label="Branch">{{ stud.branch or 'N/A' }}</td>
+                                            <td data-label="Year">{{ stud.year or 'N/A' }}</td>
+                                            <td data-label="Tasks"><b>{{ stud.completed_tasks }} / {{ stud.total_tasks }}</b> tasks</td>
+                                            <td data-label="Progress">
+                                                <div style="display:flex;align-items:center;gap:0.6rem;" class="tracker-progress-bar">
+                                                    <div style="flex-grow:1;height:8px;background:rgba(255,255,255,0.08);border-radius:4px;overflow:hidden;">
+                                                        <div style="width:{{ stud.progress_percent }}%;height:100%;background:linear-gradient(to right,var(--color-primary),var(--color-secondary));"></div>
+                                                    </div>
+                                                    <span style="font-size:0.8rem;font-weight:600;color:var(--text-secondary);">{{ stud.progress_percent }}%</span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p style="color:var(--text-muted); padding:1rem 0; font-size:0.9rem; font-style:italic;">No students have opted into this curriculum yet.</p>
+                    {% endif %}
+                </div>
+
+                <!-- 2. Quiz Submissions -->
+                <div>
+                    <h3 style="font-size:1.1rem; margin-bottom:0.8rem; color:var(--text-primary);"><i class="fa-solid fa-file-signature"></i> Course Quiz Scores</h3>
+                    
+                    {% if data.quizzes %}
+                        <div class="table-wrapper">
+                            <table class="custom-table mob-table-card">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th><th>Roll No</th><th>Course Code</th><th>Quiz Score</th><th>Mistakes</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for quiz in data.quizzes %}
+                                        <tr>
+                                            <td data-label="Student"><b>{{ quiz.full_name }}</b></td>
+                                            <td data-label="Roll"><code>{{ quiz.roll_no }}</code></td>
+                                            <td data-label="Course"><span class="badge badge-blue">{{ quiz.course_code }}</span></td>
+                                            <td data-label="Score">
+                                                <span class="badge {% if quiz.score == quiz.total_questions %}badge-green{% elif quiz.score >= quiz.total_questions / 2 %}badge-amber{% else %}badge-purple{% endif %}" style="font-size:0.8rem;">{{ quiz.score }} / {{ quiz.total_questions }}</span>
+                                            </td>
+                                            <td data-label="Mistakes">
+                                                <div style="max-height:80px;overflow-y:auto;font-size:0.78rem;font-family:monospace;background:rgba(0,0,0,0.2);padding:0.5rem;border-radius:4px;border:1px solid var(--glass-border);white-space:pre-wrap;">{{ quiz.wrong_answers_explanation or 'No errors!' }}</div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <p style="color:var(--text-muted); padding:1rem 0; font-size:0.9rem; font-style:italic;">No quiz attempts recorded for this curriculum yet.</p>
+                    {% endif %}
+                </div>
+
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="glass-card" style="text-align:center; padding:3rem 0;">
+        <i class="fa-solid fa-users-slash" style="font-size:3rem; color:var(--text-muted); margin-bottom:1rem;"></i>
+        <p style="color:var(--text-muted);">No curricula have been generated under your account yet. Generate a curriculum to start tracking student progress!</p>
+    </div>
+{% endif %}
+{% endblock %}

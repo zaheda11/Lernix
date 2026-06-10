@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile | LERNIX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-user-gear"></i> Profile Settings</h1>
+        <p class="page-subtitle">Inspect your credentials, system roles, and update academic credentials.</p>
+    </div>
+</div>
+
+<div class="profile-detail-grid">
+    
+    <!-- Left: Profile Info Card -->
+    <div class="glass-card" style="text-align:center;">
+        <div style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg, var(--color-primary), var(--color-accent)); display:flex; align-items:center; justify-content:center; font-size:3rem; font-weight:800; border:3px solid rgba(255,255,255,0.2); margin:0 auto 1.5rem;">
+            {{ user.full_name[0] | upper }}
+        </div>
+        
+        <h2 style="font-size:1.5rem; margin-bottom:0.2rem;">{{ user.full_name }}</h2>
+        <span class="user-badge" style="display:inline-block; margin-bottom:1.5rem;">{{ user.role }}</span>
+        
+        <div style="text-align:left; border-top:1px solid var(--glass-border); padding-top:1.5rem; display:flex; flex-direction:column; gap:0.8rem; font-size:0.92rem; color:var(--text-secondary);">
+            <div>
+                <b style="color:var(--text-primary);"><i class="fa-solid fa-envelope" style="width:20px;"></i> Email:</b> {{ user.email }}
+            </div>
+            <div>
+                <b style="color:var(--text-primary);"><i class="fa-solid fa-shield-halved" style="width:20px;"></i> System Role:</b> {{ user.role | capitalize }}
+            </div>
+            <div>
+                <b style="color:var(--text-primary);"><i class="fa-solid fa-gem" style="width:20px;"></i> Tier:</b> {{ user.subscription_tier | capitalize }}
+            </div>
+            {% if user.role == 'student' %}
+                <div>
+                    <b style="color:var(--text-primary);"><i class="fa-solid fa-graduation-cap" style="width:20px;"></i> Year:</b> {{ user.year or 'Not set' }}
+                </div>
+                <div>
+                    <b style="color:var(--text-primary);"><i class="fa-solid fa-code-branch" style="width:20px;"></i> Branch:</b> {{ user.branch or 'Not set' }}
+                </div>
+                <div>
+                    <b style="color:var(--text-primary);"><i class="fa-solid fa-id-card" style="width:20px;"></i> Roll No:</b> {{ user.roll_no or 'Not set' }}
+                </div>
+            {% endif %}
+            <div>
+                <b style="color:var(--text-primary);"><i class="fa-solid fa-calendar-plus" style="width:20px;"></i> Registered:</b> {{ user.created_at.split(' ')[0] }}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right: Edit Form Card -->
+    <div class="glass-card">
+        <h2 style="font-size:1.4rem; margin-bottom:1.5rem; color:var(--color-secondary);"><i class="fa-solid fa-user-pen"></i> Update Account</h2>
+        
+        <div id="profile-alert" class="alert alert-success" style="display:none; margin-bottom:1.5rem;">
+            <span id="profile-msg">Updated successfully</span>
+        </div>
+
+        <form id="profile-update-form" onsubmit="handleProfileUpdate(event)">
+            <div class="form-group">
+                <label class="form-label" for="profile-name">Full Name</label>
+                <input type="text" id="profile-name" class="form-input" value="{{ user.full_name }}" required>
+            </div>
+            
+            {% if user.role == 'student' %}
+                <div class="form-group">
+                    <label class="form-label" for="profile-year">Academic Year</label>
+                    <select id="profile-year" class="form-input">
+                        <option value="1st Year" {% if user.year == '1st Year' %}selected{% endif %}>1st Year</option>
+                        <option value="2nd Year" {% if user.year == '2nd Year' %}selected{% endif %}>2nd Year</option>
+                        <option value="3rd Year" {% if user.year == '3rd Year' %}selected{% endif %}>3rd Year</option>
+                        <option value="4th Year" {% if user.year == '4th Year' %}selected{% endif %}>4th Year</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="profile-branch">Branch / Major</label>
+                    <input type="text" id="profile-branch" class="form-input" value="{{ user.branch or '' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="profile-roll">Roll Number</label>
+                    <input type="text" id="profile-roll" class="form-input" value="{{ user.roll_no or '' }}" required>
+                </div>
+            {% endif %}
+            
+            <div class="form-group">
+                <label class="form-label" for="profile-password">Change Password (Leave blank to keep current)</label>
+                <input type="password" id="profile-password" class="form-input" placeholder="Enter new password (min 6 characters)" minlength="6">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="margin-top:1rem;" id="profile-submit-btn">
+                <i class="fa-solid fa-floppy-disk"></i> Save Profile Details
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function handleProfileUpdate(event) {
+        event.preventDefault();
+        const alertEl = document.getElementById('profile-alert');
+        const msgEl = document.getElementById('profile-msg');
+        alertEl.style.display = 'none';
+
+        const payload = {
+            full_name: document.getElementById('profile-name').value,
+            password: document.getElementById('profile-password').value || null
+        };
+        
+        {% if user.role == 'student' %}
+            payload.year = document.getElementById('profile-year').value;
+            payload.branch = document.getElementById('profile-branch').value;
+            payload.roll_no = document.getElementById('profile-roll').value;
+        {% endif %}
+
+        fetch('/api/profile/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                alertEl.className = 'alert alert-success';
+                msgEl.innerHTML = `<i class="fa-solid fa-circle-check"></i> ${data.message}`;
+                alertEl.style.display = 'flex';
+                document.getElementById('profile-password').value = '';
+                
+                // Refresh page after delay to reflect details in the left status
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                alertEl.className = 'alert alert-danger';
+                msgEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> ${data.message}`;
+                alertEl.style.display = 'flex';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            alertEl.className = 'alert alert-danger';
+            msgEl.innerText = "Error updating profile. Check database connections.";
+            alertEl.style.display = 'flex';
+        });
+    }
+</script>
+{% endblock %}

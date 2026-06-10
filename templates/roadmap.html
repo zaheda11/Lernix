@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Pathway Roadmap | {{ curriculum.title }}{% endblock %}
+
+{% block extra_head %}
+<!-- Mermaid.js for flowcharts -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>
+    mermaid.initialize({
+        startOnLoad: false,
+        theme: 'dark',
+        themeVariables: {
+            background: '#0f172a',
+            primaryColor: '#6366f1',
+            secondaryColor: '#06b6d4',
+            lineColor: '#64748b'
+        }
+    });
+</script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <a href="{{ url_for('curriculum_page', id=curriculum.id) }}" style="font-size:0.9rem;"><i class="fa-solid fa-arrow-left"></i> Back to Curriculum accordion</a>
+        <h1 class="page-title" style="margin-top:0.5rem;"><i class="fa-solid fa-route"></i> Visual Pathway Roadmap</h1>
+        <p class="page-subtitle">Prerequisite Maps & Skill Dependency Graph for <b>{{ curriculum.title }}</b></p>
+    </div>
+</div>
+
+<div class="glass-card" style="margin-bottom:2rem;">
+    <!-- Tabs to toggle roadmap perspective -->
+    <div style="display:flex; gap:1rem; border-bottom:1px solid var(--glass-border); padding-bottom:1rem; margin-bottom:1.5rem; flex-wrap:wrap;">
+        <button class="btn btn-primary" id="tab-prereq-btn" onclick="toggleRoadmapTab('prereq')">
+            <i class="fa-solid fa-circle-nodes"></i> Prerequisite Map
+        </button>
+        <button class="btn btn-secondary" id="tab-skill-btn" onclick="toggleRoadmapTab('skills')">
+            <i class="fa-solid fa-diagram-project"></i> Skill Dependency Graph
+        </button>
+    </div>
+
+    <!-- Prerequisite Map View -->
+    <div id="roadmap-prereq-view">
+        <h2 style="font-size:1.2rem; margin-bottom:0.5rem;">Academic Progression Flow</h2>
+        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:1.5rem;">Follow the arrows to see how courses build on prior semester subjects.</p>
+        
+        <div class="mermaid-container" style="width:100%; overflow:auto; background:rgba(0,0,0,0.2); border-radius:var(--radius-md); padding:1.5rem; min-height:500px;">
+            <div id="prereq-mermaid-graph" style="width:100%;"></div>
+        </div>
+    </div>
+
+    <!-- Skill Dependency View -->
+    <div id="roadmap-skills-view" style="display:none;">
+        <h2 style="font-size:1.2rem; margin-bottom:0.5rem;">Skill Competency Clusters</h2>
+        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:1.5rem;">Map of tools, languages, and technical competencies developed through this program.</p>
+        
+        <div class="mermaid-container" style="width:100%; overflow:auto; background:rgba(0,0,0,0.2); border-radius:var(--radius-md); padding:1.5rem; min-height:500px;">
+            <div id="skills-mermaid-graph" style="width:100%;"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Raw Curriculum data helper for JS -->
+<script id="curriculum-data-raw" type="application/json">
+    {{ data | tojson }}
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/roadmap.js') }}"></script>
+{% endblock %}

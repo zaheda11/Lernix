@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Curriculum Generator | LERNIX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-wand-magic-sparkles"></i> AI Curriculum Planner</h1>
+        <p class="page-subtitle">Configure parameters and leverage LERNIX AI to generate a complete, outcome-based syllabus.</p>
+    </div>
+</div>
+
+<div class="glass-card" style="max-width:800px;margin:0 auto 2rem;background:linear-gradient(135deg,rgba(99,102,241,0.05) 0%,rgba(9,13,22,0.6) 100%);" id="limits-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <div>
+            <h3 style="font-size:1.1rem; margin-bottom:0.2rem;"><i class="fa-solid fa-gem" style="color:var(--color-secondary);"></i> Subscription Limit Check</h3>
+            <p style="color:var(--text-muted); font-size:0.85rem;">
+                Plan: <span style="text-transform:uppercase; font-weight:600; color:var(--color-secondary);">{{ user_details.subscription_tier }} tier</span>
+            </p>
+        </div>
+        <div>
+            {% if user_details.subscription_tier == 'free' %}
+                <span class="badge {% if user_details.generation_count >= 5 %}badge-purple{% else %}badge-blue{% endif %}" style="padding:0.4rem 0.8rem;">
+                    Generations: {{ user_details.generation_count }} / 5 this month
+                </span>
+                {% if user_details.generation_count >= 5 %}
+                    <p style="font-size:0.75rem; color:var(--color-danger); margin-top:0.3rem;">Monthly limit reached! Please upgrade to continue.</p>
+                {% endif %}
+            {% else %}
+                <span class="badge badge-green" style="padding:0.4rem 0.8rem;"><i class="fa-solid fa-infinity"></i> Unlimited Generations Enabled</span>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="glass-card" style="max-width:800px;margin:0 auto;" id="generator-card">
+    
+    <div id="gen-error-alert" class="alert alert-danger" style="display:none; margin-bottom:1.5rem;">
+        <span id="gen-error-msg">Error details</span>
+    </div>
+
+    {% if user_details.subscription_tier == 'free' and user_details.generation_count >= 5 %}
+        <div style="text-align:center; padding:2rem 0;">
+            <i class="fa-solid fa-lock" style="font-size:3rem; color:var(--text-muted); margin-bottom:1rem;"></i>
+            <h3 style="font-size:1.2rem; margin-bottom:0.5rem; color:var(--text-primary);">Generation Limit Exceeded</h3>
+            <p style="color:var(--text-secondary); margin-bottom:1.5rem; font-size:0.9rem;">You have consumed your 5 free curriculum generations for this month. Upgrade your plan to get unlimited generations.</p>
+            <a href="{{ url_for('subscription_page') }}" class="btn btn-primary"><i class="fa-solid fa-gem"></i> View Subscription Plans</a>
+        </div>
+    {% else %}
+        <form id="curriculum-generation-form" onsubmit="submitCurriculumRequest(event)">
+            <h2 style="font-size:1.3rem; margin-bottom:1.5rem; border-bottom:1px solid var(--glass-border); padding-bottom:0.8rem; color:var(--color-secondary);">
+                Course Parameters
+            </h2>
+            
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="prog-title">Course Name</label>
+                    <input type="text" id="prog-title" class="form-input" placeholder="e.g. Introduction to Programming or Computer Science & AI" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="prog-field">Field of Study</label>
+                    <select id="prog-field" class="form-input" onchange="toggleCustomField(this.value)">
+                        <option value="Computer Science">Computer Science & Software Engineering</option>
+                        <option value="Data Science">Data Science & Analytics</option>
+                        <option value="Business Management">Business Management & Entrepreneurship</option>
+                        <option value="Digital Marketing">Digital Marketing & SEO</option>
+                        <option value="Creative Design">UX/UI Design & Product Management</option>
+                        <option value="Cybersecurity">Cybersecurity & Networking</option>
+                        <option value="Artificial Intelligence">Artificial Intelligence & ML</option>
+                        <option value="Cloud Computing">Cloud Computing & DevOps</option>
+                        <option value="custom">✏️ Other (Custom Field)</option>
+                    </select>
+                    <input type="text" id="prog-field-custom" class="form-input" placeholder="Enter your field of study..." style="display:none; margin-top:0.5rem;">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label class="form-label" for="prog-semesters">Duration (Semesters)</label>
+                    <input type="number" id="prog-semesters" class="form-input" min="1" max="8" value="4" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="prog-audience">Target Student Cohort</label>
+                    <select id="prog-audience" class="form-input">
+                        <option value="Undergraduate">Undergraduate (College Degree)</option>
+                        <option value="Graduate">Graduate (Master's / Ph.D. Level)</option>
+                        <option value="Professional">Professional Bootcamp (Intense Certificate)</option>
+                        <option value="K-12 Highschool">Advanced Placement (High School Cohort)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="margin-top:2rem; text-align:right;">
+                <button type="submit" class="btn btn-primary" id="gen-submit-btn">
+                    <i class="fa-solid fa-gears"></i> Synthesize Curriculum
+                </button>
+            </div>
+        </form>
+    {% endif %}
+</div>
+
+<!-- Dynamic Loading Overlay -->
+<div class="glass-card" style="max-width:600px;margin:3rem auto;display:none;" id="generator-loader">
+    <div class="loader-container" style="display:flex;">
+        <div class="glow-spinner"></div>
+        <div class="loader-text" id="loader-status-text">Initializing AI Planner...</div>
+        <p style="color:var(--text-muted); font-size:0.85rem; text-align:center; margin-top:1rem; max-width:400px;">
+            LERNIX is aligning the course outcomes, structuring prerequisites, mapping credits, and calculating workload scores. This may take up to 10 seconds.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const loaderPhrases = [
+        "Querying IBM Granite model...",
+        "Generating course structure...",
+        "Formulating topic recommendations...",
+        "Mapping educational learning outcomes...",
+        "Validating course sequence & prerequisites...",
+        "Optimizing semester academic workload...",
+        "Rendering visual roadmap flowcharts...",
+        "Finalizing database records..."
+    ];
+
+    let phraseIndex = 0;
+    let phraseInterval;
+
+    function startLoaderAnimation() {
+        const statusText = document.getElementById('loader-status-text');
+        phraseIndex = 0;
+        statusText.innerText = loaderPhrases[phraseIndex];
+        
+        phraseInterval = setInterval(() => {
+            phraseIndex = (phraseIndex + 1) % loaderPhrases.length;
+            statusText.innerText = loaderPhrases[phraseIndex];
+        }, 1500);
+    }
+
+    function stopLoaderAnimation() {
+        clearInterval(phraseInterval);
+    }
+
+    function toggleCustomField(val) {
+        const custom = document.getElementById('prog-field-custom');
+        custom.style.display = val === 'custom' ? 'block' : 'none';
+        if (val === 'custom') custom.focus();
+    }
+
+    function submitCurriculumRequest(event) {
+        event.preventDefault();
+        
+        const cardDiv = document.getElementById('generator-card');
+        const limitsCard = document.getElementById('limits-card');
+        const loaderDiv = document.getElementById('generator-loader');
+        const alertDiv = document.getElementById('gen-error-alert');
+        const errorMsg = document.getElementById('gen-error-msg');
+        
+        alertDiv.style.display = 'none';
+        
+        const fieldSelect = document.getElementById('prog-field');
+        const fieldCustom = document.getElementById('prog-field-custom');
+        const fieldValue  = fieldSelect.value === 'custom'
+            ? (fieldCustom.value.trim() || 'General Studies')
+            : fieldSelect.value;
+
+        const titleValue = document.getElementById('prog-title').value.trim();
+
+        const payload = {
+            title: titleValue,
+            field_of_study: fieldValue,
+            duration_semesters: document.getElementById('prog-semesters').value,
+            target_audience: document.getElementById('prog-audience').value
+        };
+
+        // Transition views
+        cardDiv.style.display = 'none';
+        if (limitsCard) limitsCard.style.display = 'none';
+        loaderDiv.style.display = 'block';
+        startLoaderAnimation();
+
+        fetch('/api/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            stopLoaderAnimation();
+            if (data.success) {
+                window.location.href = `/curriculum/${data.curriculum_id}`;
+            } else {
+                cardDiv.style.display = 'block';
+                if (limitsCard) limitsCard.style.display = 'block';
+                loaderDiv.style.display = 'none';
+                errorMsg.innerText = data.message || "Synthesizer failed to generate plan.";
+                alertDiv.style.display = 'flex';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            stopLoaderAnimation();
+            cardDiv.style.display = 'block';
+            if (limitsCard) limitsCard.style.display = 'block';
+            loaderDiv.style.display = 'none';
+            errorMsg.innerText = "Fatal connection timeout. Verify Ollama or network status.";
+            alertDiv.style.display = 'flex';
+        });
+    }
+</script>
+{% endblock %}

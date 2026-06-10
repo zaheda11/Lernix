@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Support | LERNIX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-envelope"></i> Contact Support</h1>
+        <p class="page-subtitle">Reach out to our team for support, academic integrations, or feedback.</p>
+    </div>
+</div>
+
+<div class="glass-card" id="contact-form-card" style="max-width: 600px; margin: 0 auto;">
+    <h2 style="font-size:1.4rem; margin-bottom:1.5rem; color:var(--color-secondary);"><i class="fa-solid fa-paper-plane"></i> Contact Support</h2>
+    
+    <div id="contact-alert" class="alert alert-success" style="display:none; margin-bottom:1.5rem;">
+        <span><i class="fa-solid fa-circle-check"></i> Thank you! Your message has been sent successfully.</span>
+    </div>
+
+    <form id="contact-form" onsubmit="handleContactSubmit(event)">
+        <div class="form-group">
+            <label class="form-label" for="contact-name">Your Name</label>
+            <input type="text" id="contact-name" class="form-input" placeholder="e.g. Professor Sarah Jenkins" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="contact-email">Email Address</label>
+            <input type="email" id="contact-email" class="form-input" placeholder="e.g. jenkins@school.edu" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label" for="contact-msg">Message / Inquiry</label>
+            <textarea id="contact-msg" class="form-input" rows="5" placeholder="Specify details regarding integrations, enterprise licenses, or curriculum updates..." required style="resize:vertical;"></textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1rem;" id="contact-submit-btn">
+            Send Message
+        </button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function handleContactSubmit(event) {
+        event.preventDefault();
+        const alertEl = document.getElementById('contact-alert');
+        alertEl.style.display = 'flex';
+        document.getElementById('contact-form').reset();
+        
+        setTimeout(() => {
+            alertEl.style.display = 'none';
+        }, 5000);
+    }
+</script>
+{% endblock %}

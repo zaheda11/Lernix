@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block title %}FAQ | LERNIX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-circle-question"></i> FAQ & Guide</h1>
+        <p class="page-subtitle">Frequently Asked Questions regarding the LERNIX curriculum framework.</p>
+    </div>
+</div>
+
+<div class="glass-card" style="max-width: 900px; margin: 0 auto;">
+    
+    <div class="accordion-list faq-accordion">
+        
+        <!-- FAQ 1 -->
+        <div class="accordion-item open" id="faq-1">
+            <div class="accordion-header" onclick="toggleFaq('faq-1')">
+                <span>What is LERNIX?</span>
+                <i class="fa-solid fa-chevron-down accordion-icon"></i>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-body">
+                    <p style="color:var(--text-secondary);">
+                        LERNIX is a highly advanced AI-powered Curriculum Planning platform that transforms course titles into industry-aligned semester courses. Unlike basic syllabus lists, it maps course intelligence (difficulty, workloads, career paths), writes comprehensive learning outcomes, and dynamically plots prerequisite pathways.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ 2 -->
+        <div class="accordion-item" id="faq-2">
+            <div class="accordion-header" onclick="toggleFaq('faq-2')">
+                <span>How is the curriculum output generated?</span>
+                <i class="fa-solid fa-chevron-down accordion-icon"></i>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-body">
+                    <p style="color:var(--text-secondary);">
+                        The backend queries the <b>IBM Granite 3.3 2B</b> model running locally via Ollama. By utilizing custom JSON-schema prompts, we force the LLM to output valid educational outlines, mapping previous courses to current semester prerequisites, preventing academic hallucinations.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ 3 -->
+        <div class="accordion-item" id="faq-3">
+            <div class="accordion-header" onclick="toggleFaq('faq-3')">
+                <span>What if I don't have Ollama running locally?</span>
+                <i class="fa-solid fa-chevron-down accordion-icon"></i>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-body">
+                    <p style="color:var(--text-secondary);">
+                        No worries! The application contains a built-in <b>Mock Generator Fallback</b>. If the connection to your local Ollama port (11434) fails, LERNIX automatically supplies dynamic, industry-standard curriculum designs for Computer Science, Data Science, and Design courses, making the platform fully functional out-of-the-box.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ 4 -->
+        <div class="accordion-item" id="faq-4">
+            <div class="accordion-header" onclick="toggleFaq('faq-4')">
+                <span>How do I configure my local Ollama setup?</span>
+                <i class="fa-solid fa-chevron-down accordion-icon"></i>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-body">
+                    <p style="color:var(--text-secondary);">
+                        Follow these simple steps:
+                    </p>
+                    <ol style="padding-left:1.5rem; margin-top:0.5rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:0.4rem;">
+                        <li>Download Ollama from <a href="https://ollama.com" target="_blank">ollama.com</a> and install it.</li>
+                        <li>Open your shell and run the command: <code style="background:rgba(255,255,255,0.08); padding:0.1rem 0.4rem; border-radius:4px;">ollama run granite3.3:latest</code> or the model configuration name set in <code style="background:rgba(255,255,255,0.08); padding:0.1rem 0.4rem; border-radius:4px;">llm_service.py</code>.</li>
+                        <li>Restart the Flask server. It will automatically detect the local container on port 11434!</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+
+        <!-- FAQ 5 -->
+        <div class="accordion-item" id="faq-5">
+            <div class="accordion-header" onclick="toggleFaq('faq-5')">
+                <span>What roles are supported on the platform?</span>
+                <i class="fa-solid fa-chevron-down accordion-icon"></i>
+            </div>
+            <div class="accordion-content">
+                <div class="accordion-body">
+                    <p style="color:var(--text-secondary);">
+                        LERNIX has three distinct user roles:
+                    </p>
+                    <ul style="padding-left:1.5rem; margin-top:0.5rem; color:var(--text-secondary); display:flex; flex-direction:column; gap:0.4rem;">
+                        <li><b>Student</b>: Can view all roadmaps, study plans, dashboards, generate personalized study guides, and review Q&A preps. Students must opt into curricula first.</li>
+                        <li><b>Educator</b>: Can generate curricula, edit structures, review student checklist completions, and export PDFs/JSONs.</li>
+                        <li><b>Admin</b>: Accesses overall database logs, role distributions, user feedback files, and detailed performance scores.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleFaq(id) {
+        const item = document.getElementById(id);
+        if (item.classList.contains('open')) {
+            item.classList.remove('open');
+        } else {
+            const items = document.querySelectorAll('.accordion-item');
+            items.forEach(el => el.classList.remove('open'));
+            item.classList.add('open');
+        }
+    }
+</script>
+{% endblock %}

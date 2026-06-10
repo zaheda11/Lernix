@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Student Study Assistant | LERNIX{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-user-astronaut"></i> LERNIX Study Assistant</h1>
+        <p class="page-subtitle">Formulate personalized calendars, weekly schedules, study roadmaps, and interview preparations.</p>
+    </div>
+</div>
+
+<div class="glass-card" id="assistant-form-card" style="max-width:600px;margin:0 auto;">
+    <h2 style="font-size:1.4rem; margin-bottom:1.5rem; color:var(--color-secondary);"><i class="fa-solid fa-calculator"></i> Build Study Schedule</h2>
+    
+    <div id="assist-error-alert" class="alert alert-danger" style="display:none; margin-bottom:1.5rem;">
+        <span id="assist-error-msg">Error details</span>
+    </div>
+
+    <form id="assistant-form" onsubmit="submitAssistantRequest(event)">
+        
+        <div class="form-group">
+            <label class="form-label" for="select-curriculum">1. Select Target Curriculum</label>
+            <select id="select-curriculum" class="form-input" onchange="populateCoursesDropdown(this.value)" required>
+                <option value="">-- Choose Curriculum --</option>
+                {% for curr in curricula %}
+                    <option value="{{ curr.id }}">{{ curr.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        {% if session.get('role') != 'student' %}
+            <div class="form-group" id="course-form-group">
+                <label class="form-label" for="select-course">2. Select Target Course</label>
+                <select id="select-course" class="form-input" required disabled>
+                    <option value="">-- Select Curriculum First --</option>
+                </select>
+            </div>
+        {% endif %}
+        
+        <div class="form-group">
+            <label class="form-label" for="study-hours">{% if session.get('role') == 'student' %}2.{% else %}3.{% endif %} Weekly Study Commitment (Hours): <b id="study-hours-val" style="color:var(--color-secondary);">10</b></label>
+            <input type="range" id="study-hours" min="4" max="40" value="10" step="2" class="form-input" style="padding:0;" oninput="document.getElementById('study-hours-val').innerText = this.value">
+            <div class="range-labels" style="display:flex; justify-content:space-between; font-size:0.75rem; color:var(--text-muted); margin-top:0.2rem;">
+                <span>4h Casual</span>
+                <span>20h Part-time</span>
+                <span>40h Bootcamp</span>
+            </div>
+        </div>
+        
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1.5rem;" id="assist-submit-btn">
+            <i class="fa-solid fa-compass"></i> Create Personalized Study Guide
+        </button>
+    </form>
+</div>
+
+<!-- Loader Overlay for Assistant -->
+<div class="glass-card" style="max-width:600px;margin:3rem auto;display:none;" id="assistant-loader">
+    <div class="loader-container" style="display:flex;">
+        <div class="glow-spinner"></div>
+        <div class="loader-text" id="assist-loader-status">Assembling planner...</div>
+        <p style="color:var(--text-muted); font-size:0.85rem; text-align:center; margin-top:1rem; max-width:400px;">
+            LERNIX is building your study milestones, scheduling topic tasks, and composing key technical interview Q&As. Please wait.
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const loaderPhrases = [
+        "Analyzing course guidelines...",
+        "Structuring 4-week learning blocks...",
+        "Formulating study tasks and hour distributions...",
+        "Drafting revision checkpoints...",
+        "Generating sample interview questions & answers...",
+        "Compiling student study plan..."
+    ];
+
+    let phraseIndex = 0;
+    let phraseInterval;
+
+    function startLoader() {
+        const textEl = document.getElementById('assist-loader-status');
+        phraseIndex = 0;
+        textEl.innerText = loaderPhrases[phraseIndex];
+        phraseInterval = setInterval(() => {
+            phraseIndex = (phraseIndex + 1) % loaderPhrases.length;
+            textEl.innerText = loaderPhrases[phraseIndex];
+        }, 1200);
+    }
+
+    function stopLoader() {
+        clearInterval(phraseInterval);
+    }
+
+    function populateCoursesDropdown(currId) {
+        const selectCourse = document.getElementById('select-course');
+        if (!selectCourse) return;
+        
+        selectCourse.innerHTML = '<option value="">-- Loading Courses... --</option>';
+        selectCourse.disabled = true;
+
+        if (!currId) {
+            selectCourse.innerHTML = '<option value="">-- Select Curriculum First --</option>';
+            return;
+        }
+
+        fetch(`/api/curriculum/${currId}/courses`)
+            .then(res => res.json())
+            .then(courses => {
+                selectCourse.innerHTML = '<option value="">-- Select Course --</option>';
+                courses.forEach(c => {
+                    selectCourse.innerHTML += `<option value="${c}">${c}</option>`;
+                });
+                selectCourse.disabled = false;
+                
+                // Handle pre-selected URL params if any
+                const urlParams = new URLSearchParams(window.location.search);
+                const preselect = urlParams.get('course');
+                if (preselect) {
+                    selectCourse.value = preselect;
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                selectCourse.innerHTML = '<option value="">-- Error loading courses --</option>';
+            });
+    }
+
+    function submitAssistantRequest(event) {
+        event.preventDefault();
+        const cardEl = document.getElementById('assistant-form-card');
+        const loaderEl = document.getElementById('assistant-loader');
+        const alertEl = document.getElementById('assist-error-alert');
+        const msgEl = document.getElementById('assist-error-msg');
+        
+        alertEl.style.display = 'none';
+
+        const courseSelect = document.getElementById('select-course');
+        const payload = {
+            curriculum_id: document.getElementById('select-curriculum').value,
+            course_name: courseSelect ? courseSelect.value : "",
+            weekly_hours: document.getElementById('study-hours').value
+        };
+
+        cardEl.style.display = 'none';
+        loaderEl.style.display = 'block';
+        startLoader();
+
+        fetch('/api/assistant/generate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(data => {
+            stopLoader();
+            if (data.success) {
+                window.location.href = `/assistant/plan/${data.plan_id}`;
+            } else {
+                cardEl.style.display = 'block';
+                loaderEl.style.display = 'none';
+                msgEl.innerText = data.message || "Synthesizer failed to build study plan.";
+                alertEl.style.display = 'flex';
+            }
+        })
+        .catch(err => {
+            console.error(err);
+            stopLoader();
+            cardEl.style.display = 'block';
+            loaderEl.style.display = 'none';
+            msgEl.innerText = "Connection error. Confirm Ollama server is online.";
+            alertEl.style.display = 'flex';
+        });
+    }
+
+    // Auto load on load if params present
+    window.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const currId = urlParams.get('curr_id');
+        if (currId) {
+            document.getElementById('select-curriculum').value = currId;
+            populateCoursesDropdown(currId);
+        }
+    });
+
+    function optInCurriculum(currId, btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        fetch('/api/curriculum/optin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ curriculum_id: currId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            const row = document.getElementById('optin-row-' + currId);
+            if (data.success) {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Opted In';
+                btn.style.background = 'var(--color-success)';
+                btn.style.boxShadow = 'none';
+                row.style.borderColor = 'var(--color-success)';
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Already In';
+                btn.style.background = 'var(--color-success)';
+                btn.style.boxShadow = 'none';
+            }
+        })
+        .catch(() => { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-plus"></i> Opt In'; });
+    }
+</script>
+{% endblock %}

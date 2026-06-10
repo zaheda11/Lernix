@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block title %}Curriculum History | LERNIX{% endblock %}
+
+{% block extra_head %}
+<style>
+    .htab-bar { display:flex; border-bottom:1px solid var(--glass-border); margin-bottom:2rem; gap:0; }
+    .htab-btn {
+        background:none; border:none; border-bottom:3px solid transparent;
+        padding:0.7rem 1.6rem; font-size:0.95rem; font-weight:600;
+        color:var(--text-muted); cursor:pointer; transition:all 0.2s;
+        display:flex; align-items:center; gap:0.5rem; margin-bottom:-1px;
+    }
+    .htab-btn.active { color:var(--text-primary); border-bottom-color:var(--color-primary); }
+    .htab-panel { display:none; }
+    .htab-panel.active { display:block; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div>
+        <h1 class="page-title"><i class="fa-solid fa-clock-rotate-left"></i> Curriculum Logs &amp; <span style="color:var(--color-secondary);">Exports</span></h1>
+        <p class="page-subtitle">
+            {% if session.get('role') == 'student' %}
+                Review the curricula you have opted into, your saved study plans, and export histories.
+            {% else %}
+                Inspect previously formulated educational plans, templates, and download histories.
+            {% endif %}
+        </p>
+    </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="htab-bar">
+    <button class="htab-btn active" id="htab-btn-curricula" onclick="switchTab('curricula')">
+        <i class="fa-solid fa-graduation-cap"></i>
+        {% if session.get('role') == 'student' %}Available Curricula{% else %}Generated Curricula{% endif %}
+    </button>
+    {% if session.get('role') == 'student' %}
+    <button class="htab-btn" id="htab-btn-plans" onclick="switchTab('plans')">
+        <i class="fa-solid fa-book-open-reader"></i> Saved Study Plans
+    </button>
+    {% endif %}
+    <button class="htab-btn" id="htab-btn-downloads" onclick="switchTab('downloads')">
+        <i class="fa-solid fa-download"></i> Export History
+    </button>
+</div>
+
+<div id="history-alert" class="alert alert-success" style="display:none; margin-bottom:1.5rem;">
+    <span id="history-msg"></span>
+</div>
+
+<!-- ── Panel: Curricula ── -->
+<div class="htab-panel active" id="htab-panel-curricula">
+    <div class="glass-card">
+        <h2 style="font-size:1.3rem; margin-bottom:1.5rem; color:var(--color-secondary);">
+            <i class="fa-solid fa-graduation-cap"></i>
+            {% if session.get('role') == 'student' %}Available Curricula{% else %}Generated Curricula{% endif %}
+        </h2>
+        {% if history %}
+        <div class="table-wrapper">
+            <table class="custom-table mob-table-card">
+                <thead><tr><th>Course Name</th><th>Field</th><th>Date</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for item in history %}
+                    <tr id="row-curr-{{ item.id }}">
+                        <td data-label="Name"><b>{{ item.title }}</b></td>
+                        <td data-label="Field">{{ item.field_of_study }}</td>
+                        <td data-label="Date">
+                            {% if item.created_at %}{{ item.created_at[:10] }}
+                            {% elif item.opted_in_at %}{{ item.opted_in_at[:10] }}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td data-label="Actions">
+                            <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
+                                <a href="{{ url_for('curriculum_page', id=item.id) }}" class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.78rem;">
+                                    <i class="fa-solid fa-eye"></i> View
+                                </a>
+                                <a href="{{ url_for('roadmap_page', id=item.id) }}" class="btn btn-accent" style="padding:0.35rem 0.6rem; font-size:0.78rem;">
+                                    <i class="fa-solid fa-route"></i> Roadmap
+                                </a>
+                                {% if session.get('role') == 'student' %}
+                                <a href="{{ url_for('assistant_page') }}?curr_id={{ item.id }}" class="btn btn-primary" style="padding:0.35rem 0.6rem; font-size:0.78rem;">
+                                    <i class="fa-solid fa-compass"></i> Study Plan
+                                </a>
+                                {% if item.id in opted_ids %}
+                                <button id="optin-btn-{{ item.id }}" class="btn btn-secondary" style="padding:0.35rem 0.6rem; font-size:0.78rem; border-color:var(--color-success); color:var(--color-success);" onclick="toggleOptIn({{ item.id }}, true, this)">
+                                    <i class="fa-solid fa-check"></i> Opted In
+                                </button>
+                                {% else %}
+                                <button id="optin-btn-{{ item.id }}" class="btn btn-accent" style="padding:0.35rem 0.6rem; font-size:0.78rem;" onclick="toggleOptIn({{ item.id }}, false, this)">
+                                    <i class="fa-solid fa-plus"></i> Opt In
+                                </button>
+                                {% endif %}
+                                {% else %}
+                                <button class="btn btn-danger" style="padding:0.35rem 0.6rem; font-size:0.78rem;" onclick="deleteCurriculum({{ item.id }})">
+                                    <i class="fa-solid fa-trash-can"></i> Delete
+                                </button>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align:center; padding:3rem 0; color:var(--text-muted);">
+            <i class="fa-solid fa-inbox" style="font-size:2.5rem; margin-bottom:1rem; display:block;"></i>
+            {% if session.get('role') == 'student' %}
+                You haven't opted into any curricula yet.
+            {% else %}
+                No curricula generated yet.
+            {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- ── Panel: Saved Study Plans (student only) ── -->
+{% if session.get('role') == 'student' %}
+<div class="htab-panel" id="htab-panel-plans">
+    <div class="glass-card">
+        <h2 style="font-size:1.3rem; margin-bottom:1.5rem; color:var(--color-secondary);">
+            <i class="fa-solid fa-book-open-reader"></i> Saved Study Plans
+        </h2>
+        {% if saved_plans %}
+        <div class="table-wrapper">
+            <table class="custom-table mob-table-card">
+                <thead><tr><th>Plan Title</th><th>Curriculum</th><th>Created</th><th>Action</th></tr></thead>
+                <tbody>
+                    {% for plan in saved_plans %}
+                    <tr>
+                        <td data-label="Title"><b>{{ plan.title }}</b></td>
+                        <td data-label="Curriculum">{{ plan.curriculum_title }}</td>
+                        <td data-label="Date">{% if plan.created_at %}{{ plan.created_at[:10] }}{% else %}—{% endif %}</td>
+                        <td data-label="Action">
+                            <a href="/assistant/plan/{{ plan.id }}" class="btn btn-primary" style="padding:0.35rem 0.7rem; font-size:0.78rem;">
+                                <i class="fa-solid fa-book-open"></i> Open
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align:center; padding:3rem 0; color:var(--text-muted);">
+            <i class="fa-solid fa-book" style="font-size:2.5rem; margin-bottom:1rem; display:block;"></i>
+            No study plans yet. Go to <a href="{{ url_for('assistant_page') }}">Study Assistant</a> to create one.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
+<!-- ── Panel: Export History ── -->
+<div class="htab-panel" id="htab-panel-downloads">
+    <div class="glass-card">
+        <h2 style="font-size:1.3rem; margin-bottom:1.5rem;">
+            <i class="fa-solid fa-download"></i> Export History Logs
+        </h2>
+        {% if downloads %}
+        <div class="table-wrapper">
+            <table class="custom-table mob-table-card">
+                <thead><tr><th>Course Name</th><th>Format</th><th>Downloaded At</th></tr></thead>
+                <tbody>
+                    {% for log in downloads %}
+                    <tr>
+                        <td data-label="Course">{{ log.curriculum_title }}</td>
+                        <td data-label="Format">
+                            <span class="badge {% if log.export_format == 'pdf' %}badge-purple{% elif log.export_format == 'json' %}badge-blue{% else %}badge-green{% endif %}">
+                                {{ log.export_format | upper }}
+                            </span>
+                        </td>
+                        <td data-label="Date">{% if log.timestamp %}{{ log.timestamp[:19] }}{% else %}—{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align:center; padding:3rem 0; color:var(--text-muted);">
+            <i class="fa-solid fa-file-arrow-down" style="font-size:2.5rem; margin-bottom:1rem; display:block;"></i>
+            No export history logged yet.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function switchTab(tab) {
+        ['curricula', 'plans', 'downloads'].forEach(t => {
+            const panel = document.getElementById('htab-panel-' + t);
+            const btn   = document.getElementById('htab-btn-' + t);
+            if (!panel || !btn) return;
+            const active = (t === tab);
+            panel.classList.toggle('active', active);
+            btn.classList.toggle('active', active);
+        });
+    }
+
+    // Hash deep-link support
+    const _h = location.hash.replace('#','');
+    if (_h === 'plans' || _h === 'downloads') switchTab(_h);
+
+    function toggleOptIn(id, isOptedIn, btn) {
+        btn.disabled = true;
+        const alertEl = document.getElementById('history-alert');
+        const msgEl   = document.getElementById('history-msg');
+        const endpoint = isOptedIn ? '/api/curriculum/optout' : '/api/curriculum/optin';
+        fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ curriculum_id: id })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (!isOptedIn) {
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> Opted In';
+                btn.style.background = 'rgba(16,185,129,0.15)';
+                btn.style.borderColor = 'var(--color-success)';
+                btn.style.color = 'var(--color-success)';
+                btn.onclick = () => toggleOptIn(id, true, btn);
+            } else {
+                btn.innerHTML = '<i class="fa-solid fa-plus"></i> Opt In';
+                btn.style.background = '';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+                btn.onclick = () => toggleOptIn(id, false, btn);
+            }
+            btn.disabled = false;
+            alertEl.className = 'alert alert-success';
+            msgEl.textContent = data.message;
+            alertEl.style.display = 'flex';
+            setTimeout(() => alertEl.style.display = 'none', 3000);
+        })
+        .catch(() => { btn.disabled = false; });
+    }
+
+    function deleteCurriculum(id) {
+        if (!confirm('Are you sure you want to remove this record?')) return;
+        const alertEl = document.getElementById('history-alert');
+        const msgEl   = document.getElementById('history-msg');
+        alertEl.style.display = 'none';
+        fetch('/api/curriculum/delete/' + id, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            alertEl.className = 'alert alert-' + (data.success ? 'success' : 'danger');
+            msgEl.textContent = data.message;
+            alertEl.style.display = 'flex';
+            if (data.success) {
+                const row = document.getElementById('row-curr-' + id);
+                if (row) row.remove();
+            }
+        })
+        .catch(() => {
+            alertEl.className = 'alert alert-danger';
+            msgEl.textContent = 'Network error.';
+            alertEl.style.display = 'flex';
+        });
+    }
+</script>
+{% endblock %}
