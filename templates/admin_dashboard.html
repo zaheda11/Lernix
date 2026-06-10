@@ -381,11 +381,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Role chart (dashboard)
     const rc = document.getElementById('roleChart');
-    if (rc) new Chart(rc, {
-        type: 'doughnut',
-        data: { labels: Object.keys(roleData), datasets: [{ data: Object.values(roleData), backgroundColor: ['#10b981','#6366f1','#a855f7'], borderWidth: 0 }] },
-        options: { plugins: { legend: { display: false } }, cutout: '65%' }
-    });
+    if (rc) {
+        const roleColors = { admin: '#a855f7', educator: '#06b6d4', student: '#10b981' };
+        const rcLabels = Object.keys(roleData);
+        const rcColors = rcLabels.map(r => roleColors[r] || '#6366f1');
+        new Chart(rc, {
+            type: 'doughnut',
+            data: { labels: rcLabels, datasets: [{ data: Object.values(roleData), backgroundColor: rcColors, borderWidth: 0 }] },
+            options: { plugins: { legend: { display: false } }, cutout: '65%' }
+        });
+    }
 
     // Export chart (analytics)
     const ec = document.getElementById('exportChart');
@@ -400,11 +405,16 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Role chart (analytics)
     const rc2 = document.getElementById('roleChart2');
-    if (rc2) new Chart(rc2, {
-        type: 'pie',
-        data: { labels: Object.keys(roleData), datasets: [{ data: Object.values(roleData), backgroundColor: ['#10b981','#6366f1','#a855f7'], borderWidth: 0 }] },
-        options: { plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } } }
-    });
+    if (rc2) {
+        const roleColors = { admin: '#a855f7', educator: '#06b6d4', student: '#10b981' };
+        const rc2Labels = Object.keys(roleData);
+        const rc2Colors = rc2Labels.map(r => roleColors[r] || '#6366f1');
+        new Chart(rc2, {
+            type: 'pie',
+            data: { labels: rc2Labels, datasets: [{ data: Object.values(roleData), backgroundColor: rc2Colors, borderWidth: 0 }] },
+            options: { plugins: { legend: { labels: { color: '#cbd5e1', font: { size: 11 } } } } }
+        });
+    }
 });
 
 function filterUsers(q) {
