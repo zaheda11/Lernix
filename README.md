@@ -111,7 +111,7 @@ ollama pull granite3.1-dense:2b
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/Sindhura-Karumuri/Lernix.git
+git clone https://github.com/zaheda11/Lernix.git
 cd Lernix
 
 # 2. Create and activate a virtual environment
