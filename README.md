@@ -2,8 +2,8 @@
 
 > An AI-powered academic curriculum generation and student learning management platform built with Flask and a locally hosted LLM (Ollama / IBM Granite).
 
-**Author:** [Sindhura Karumuri](https://github.com/Sindhura-Karumuri)
-**Repository:** https://github.com/Sindhura-Karumuri/Lernix
+**Author:** [Zaheda11](https://github.com/zaheda11)
+**Repository:** https://github.com/zaheda/Lernix
 
 ---
 
